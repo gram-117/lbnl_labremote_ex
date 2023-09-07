@@ -3,7 +3,6 @@
 #include <thread>
 #include <getopt.h>
 #include <string.h>
-#include <signal.h>
 #include <fstream>
 #include <string>
 #include <iomanip>
@@ -17,54 +16,18 @@
 #include <SPIFTDICom.h>
 #include <LMK03806.h>
 
-std::string outputFile="out.txt";
+
+int nDivide = 9;
 
 int tsleep_write = 50;
 
-bool quit=false;
-void cleanup(int signum)
-{ quit=true; }
-
-void usage(char *argv[])
-{
-  std::cout << "Usage: "<< argv[0] << " [-o output file]"<< std::endl;
-  std::cout << "   defaults: -c " << outputFile << std::endl;
-}
-
 int main(int argc, char** argv) 
 {  
-  if (argc < 1)
-    {
-      usage(argv);
-      return 1;
-    }
-  int c;
-  while (1)
-    {
-      int option_index = 0;
-      static struct option long_options[] = {
-        {"output",     required_argument, 0,  'o' },
-        {0,          0,                 0,   0  }
-      };
-      c = getopt_long(argc, argv, "o", long_options, &option_index);
-      if (c == -1)
-        {
-          break;
-        }
-      switch (c)
-        {
-          case 'o':
-            outputFile = optarg;
-            break;
-          default:
-            std::cerr << "Invalid option '" << c << "' supplied. Aborting." << std::endl;
-            std::cerr << std::endl;
-            usage(argv);
-            return 1;
-        }
-    }
+  if(argc > 1)
+  {
+    nDivide = std::stoi(argv[1]);
+  }
 
-  signal(SIGINT, cleanup);
   std::shared_ptr<FT232H> ft232;
     try {
       ft232 = std::make_shared<FT232H>(MPSSEChip::Protocol::SPI0, MPSSEChip::Speed::FOUR_HUNDRED_KHZ, MPSSEChip::Endianness::MSBFirst, "","pebbles");
@@ -74,21 +37,13 @@ int main(int argc, char** argv)
       return 1;
     }
 
- // mode SPI2: https://en.wikipedia.org/wiki/Serial_Peripheral_Interface#Mode_numbers
  // connection: SCL, SDI, DSO and LATCH are connected to FT232H pins AD0, AD1, AD2 and AD3 respectively
  //
- //  to verify MICROWIRE programming, set the LD_MUX = 0
- //  (Low) and then toggle the LD_TYPE register between 3 (Output, push-pull) and 4 (Output inverted, pushpull).
- //  The result will be that the Ftest/LD pin will toggle from low to high.
- //
- //
- 
 
-  uint32_t R12_type3 = (0x00 << 27) | (0x03 << 24) | (0 << 23 ) | (0b000110000000000011 << 5) | 12;
-  uint32_t R12_type4 = (0x00 << 27) | (0x04 << 24) | (0 << 23 ) | (0b000110000000000011 << 5) | 12;
 
   std::shared_ptr<SPIFTDICom> com(new SPIFTDICom(ft232));
   std::shared_ptr<LMK03806> clock(new LMK03806(com, ft232));
+ 
 
   for(int reg =0; reg < 31; reg++)
   {
@@ -96,12 +51,16 @@ int main(int argc, char** argv)
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
+  // unlock registers for write
+  uint32_t R31 = 0b11111;
+  clock->write(R31);
+  std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
   //step 1: reset R0
   uint32_t R0 = (0 << 18) | (1 << 17) | 0;
   clock->write(R0);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
   //step 2: R0 to R5:
-  R0 = (0 << 18) | (0 << 17) | (9 << 5) | 0; // use 66 for 40MHz; 3 for 833 MHz, 2 for 1.25 GHz
+  R0 = (0 << 18) | (0 << 17) | (nDivide << 5) | 0; // use 66 for 40MHz; 3 for 833 MHz, 2 for 1.25 GHz
   clock->write(R0);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
   clock->write(R0);
@@ -181,36 +140,28 @@ int main(int argc, char** argv)
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
   clock->write(R30);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
+ 
 
-  /*
+  // lock all registers - R0 to R30 only readable now 
+  R31 = 0b111111;
+  clock->write(R31);
+  std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
+  
+  // read back all registers
   for(int reg =0; reg < 31; reg++)
   {
       clock->read(reg);
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
-  */
 
-  /*
-  uint32_t R3 = (0 << 18) | (0x01 << 5) | 3;
-  std::cout<<"Setting R3 to :"<<std::endl;
-  std::cout<<R3<<" : "<<std::bitset<32>(R3)<<std::endl;
-  clock->write(R3);
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-   
-  uint32_t R10 = (0 << 30 ) | (1 << 28) | (0x01 << 24) | (0b0100 << 20) | (0 << 16) | (1 << 14) | 10;
-  std::cout<<"Enable OSCout 0 ..."<<std::endl;
-  std::cout<<R10<<" : "<<std::bitset<32>(R10)<<std::endl;
-  clock->write(R10);
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  //  to verify MICROWIRE programming, set the LD_MUX = 0
+  //  (Low) and then toggle the LD_TYPE register between 3 (Output, push-pull) and 4 (Output inverted, pushpull).
+  //  The result will be that the Ftest/LD pin will toggle from low to high.
 
-  uint32_t R29 = (0 << 24) | (1 << 22) | (48 << 5) | 29;
-  std::cout<<"Setting R29 to :"<<std::endl;
-  std::cout<<R29<<" : "<<std::bitset<32>(R29)<<std::endl;
-  clock->write(R29);
-  std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-  */
-  /* 
+ /* 
+  uint32_t R12_type3 = (0x00 << 27) | (0x03 << 24) | (0 << 23 ) | (0b000110000000000011 << 5) | 12;
+  uint32_t R12_type4 = (0x00 << 27) | (0x04 << 24) | (0 << 23 ) | (0b000110000000000011 << 5) | 12;
   for(int i=0; i<2; i++){
       clock->write(R12_type3);
       std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -219,8 +170,5 @@ int main(int argc, char** argv)
   }
   */
 
-  //
-  //
-  
   return 0;
 }

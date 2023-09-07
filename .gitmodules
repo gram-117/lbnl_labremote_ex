@@ -1,0 +1,4 @@
+[submodule "labremote"]
+    path = labRemote
+    url = https://gitlab.cern.ch/zhicaiz/labRemote.git
+    branch = LMK03806
