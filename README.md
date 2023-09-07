@@ -3,16 +3,16 @@
 
 - compile:
 
-'''
+```
 mkdir build
 cd build
 cmake3 ..
-'''
+```
 
 - run:
-'''
+```
 cd build
 ./test 9
-'''
+```
 
 where 9 is the divider for the output clock (from 2500MHz)
