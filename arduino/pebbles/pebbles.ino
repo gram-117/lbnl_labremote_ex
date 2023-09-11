@@ -108,14 +108,31 @@ void loop() {
 }
 
 void ReadSOUT() {
-  // toggle P_SCLK low and high for 128 times
-  for(int i = 0; i< 140; i++)
-  {
-    digitalWrite(P_SCLK, HIGH);
-    digitalWrite(P_SCLK, LOW);
+
+  // in total 133 bits, use 5 of 32 bit integers
+  uint32_t value1[5] = {0};
+  uint32_t value2[5] = {0};
+  for(int iv=0; iv<5; iv++){
+    for (int i = 0; i < 32; i++) {
+        value1[iv] <<= 1;
+        value2[iv] <<= 1;
+        if(iv == 4 && i > 5) continue;
+        digitalWrite(P_SCLK, HIGH);
+        if (digitalRead(P_SOUT1) == HIGH) value1[iv] |= 1 ;
+        digitalWrite(P_SCLK, LOW);
+        if (digitalRead(P_SOUT2) == HIGH) value2[iv] |= 1 ;
+    }
+    //delay(100);
   }
- 
-  Serial.println("0");
+
+  String outString1 = String(value1[0], HEX);
+  String outString2 = String(value2[0], HEX);
+  for(int iv=1; iv<5; iv++){
+    outString1 = outString1 + String(",") + String(value1[iv], HEX);
+    outString2 = outString2 + String(",") + String(value2[iv], HEX);
+  }
+   
+  Serial.println(outString1+";"+outString2);
 }
 
 void WriteConfig(uint32_t value) {

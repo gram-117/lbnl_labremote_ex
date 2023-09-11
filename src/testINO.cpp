@@ -172,12 +172,12 @@ int main(int argc, char** argv)
 
   std::cout<<"======== Configure PEBBLES chip:"<<std::endl;
   std::shared_ptr<PEBBLESINO> pebbles(new PEBBLESINO(com));
-  pebbles->writeGPIO("LOOPNK_EN", 1);
+  pebbles->writeGPIO("LOOPNK_EN", 0);
 
   // toggle reset
   pebbles->writeGPIO("RST", 2); // signal width is about 2 us 
   // send config for injection and enable
-  int CFGIN = (12 << 28) | (0b10 << 10);
+  int CFGIN = (0b1110 << 28) | (0b1 << 10);
   pebbles->writeConfig(CFGIN);
   // send prime signal
   pebbles->writeGPIO("PRIME", 2); // signal width is about 2 us 
