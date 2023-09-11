@@ -39,8 +39,8 @@ void setup() {
   pinMode(LMK_LATCH, OUTPUT);
   pinMode(LMK_SDI, OUTPUT);
 
-  pinMode(P_SOUT2, INPUT_PULLUP);
-  pinMode(P_SOUT1, INPUT_PULLUP);
+  pinMode(P_SOUT2, INPUT);
+  pinMode(P_SOUT1, INPUT);
   pinMode(P_RST, OUTPUT);
   pinMode(P_SCLK, OUTPUT);
   pinMode(P_CFGCLK, OUTPUT);
@@ -69,24 +69,72 @@ void loop() {
       LMKRead(strtoul(inputString_split[1], NULL, 10));
     }
 
+    if (inputString.indexOf("WriteConfig") != -1) {
+      WriteConfig(strtoul(inputString_split[1], NULL, 10));
+      Serial.println("OK!");
+    }
+
     if (inputString.indexOf("WriteGPIO") != -1) {
        int pin_write = -1;
        if (strcmp(inputString_split[1], "RST") == 0) pin_write = P_RST;
-       if (strcmp(inputString_split[1], "SCLK") == 0) pin_write = P_SCLK;
-       if (strcmp(inputString_split[1], "CFGCLK") == 0) pin_write = P_CFGCLK;
        if (strcmp(inputString_split[1], "MODE") == 0) pin_write = P_MODE;
        if (strcmp(inputString_split[1], "PRIME") == 0) pin_write = P_PRIME;
        if (strcmp(inputString_split[1], "LOOPNK_EN") == 0) pin_write = P_LOOPNK_EN;
-       if (strcmp(inputString_split[1], "CFGIN") == 0) pin_write = P_CFGIN;
 
-       if (pin_write > -1) digitalWrite(pin_write,  (inputString_split[2][0] == '1') ?  HIGH : LOW);
-       Serial.println("Write pin "+String(pin_write)+" to "+inputString_split[2]+" OK!");
+       if (pin_write > -1) {
+            if (inputString_split[2][0] == '1') {
+                digitalWrite(pin_write,  HIGH);
+            }
+            else if (inputString_split[2][0] == '0') {
+                digitalWrite(pin_write,  LOW);
+            }
+            else {
+                digitalWrite(pin_write,  LOW);
+                digitalWrite(pin_write,  HIGH);
+                digitalWrite(pin_write,  LOW);
+            }
+       }
+       Serial.println("Write pin "+String(pin_write)+"("+inputString_split[1]+") to "+inputString_split[2]+" OK!");
+    }
+
+    if (inputString.indexOf("ReadSOUT") != -1) {
+      ReadSOUT();
     }
 
     // Clear the string for new input:
     inputString = "";
     stringComplete = false;
   }
+}
+
+void ReadSOUT() {
+  // toggle P_SCLK low and high for 128 times
+  for(int i = 0; i< 140; i++)
+  {
+    digitalWrite(P_SCLK, HIGH);
+    digitalWrite(P_SCLK, LOW);
+  }
+ 
+  Serial.println("0");
+}
+
+void WriteConfig(uint32_t value) {
+  // write value to pin P_CFGIN, with clock on pin P_CFGCLK
+  digitalWrite(P_CFGCLK, LOW);
+  digitalWrite(P_CFGIN, LOW);
+
+  for (int i = 31; i >= 6; i--) {  // Start from the most significant bit, only send 25 MSBs
+    // Set data pin based on current bit value
+    digitalWrite(P_CFGIN, (value & (1UL << i)) ? HIGH : LOW);
+    
+    // Pulse the clock pin
+    digitalWrite(P_CFGCLK, HIGH);
+    digitalWrite(P_CFGCLK, LOW);
+  }
+
+  // CLK and IN back to low
+  digitalWrite(P_CFGCLK, LOW);
+  digitalWrite(P_CFGIN, LOW);
 }
 
 void LMKRead(uint32_t regis) {
