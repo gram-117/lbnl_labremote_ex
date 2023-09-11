@@ -23,13 +23,14 @@
 
 int nDivide = 9;
 
-int tsleep_write = 50;
+int tsleep_write = 10;
 
 void configureClock(std::shared_ptr<LMK03806INO> clock){
+  std::cout<<"======== Configure LMK03806 CLOCK:"<<std::endl;
   for(int reg =0; reg < 31; reg++)
   {
       clock->read(reg);
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      std::this_thread::sleep_for(std::chrono::milliseconds(2));
   }
 
   // unlock registers for write
@@ -132,7 +133,7 @@ void configureClock(std::shared_ptr<LMK03806INO> clock){
   for(int reg =0; reg < 31; reg++)
   {
       clock->read(reg);
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      std::this_thread::sleep_for(std::chrono::milliseconds(2));
   }
 
 
@@ -150,6 +151,7 @@ void configureClock(std::shared_ptr<LMK03806INO> clock){
       std::this_thread::sleep_for(std::chrono::milliseconds(3000));
   }
   */
+  std::cout<<"======== Configure LMK03806 CLOCK done ============="<<std::endl;
 }
 
 int main(int argc, char** argv) 
@@ -168,13 +170,10 @@ int main(int argc, char** argv)
   std::shared_ptr<LMK03806INO> clock(new LMK03806INO(com));
   configureClock(clock);
 
+  std::cout<<"======== Configure PEBBLES chip:"<<std::endl;
   std::shared_ptr<PEBBLESINO> pebbles(new PEBBLESINO(com));
-  for(int i=0; i<10; i++) {
-  pebbles->writeGPIO("MODE", 0);
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
   pebbles->writeGPIO("MODE", 1);
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  }
+  pebbles->writeGPIO("LOOPNK_EN", 1);
 
 
   return 0;

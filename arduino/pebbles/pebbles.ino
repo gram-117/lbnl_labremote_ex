@@ -39,8 +39,8 @@ void setup() {
   pinMode(LMK_LATCH, OUTPUT);
   pinMode(LMK_SDI, OUTPUT);
 
-  pinMode(P_SOUT2, INPUT);
-  pinMode(P_SOUT1, INPUT);
+  pinMode(P_SOUT2, INPUT_PULLUP);
+  pinMode(P_SOUT1, INPUT_PULLUP);
   pinMode(P_RST, OUTPUT);
   pinMode(P_SCLK, OUTPUT);
   pinMode(P_CFGCLK, OUTPUT);
@@ -70,10 +70,17 @@ void loop() {
     }
 
     if (inputString.indexOf("WriteGPIO") != -1) {
-       if (strcmp(inputString_split[1], "MODE") == 0) {
-            digitalWrite(P_MODE,  (inputString_split[2][0] == '1') ?  HIGH : LOW);
-            Serial.println("Write MODE OK!");
-       }
+       int pin_write = -1;
+       if (strcmp(inputString_split[1], "RST") == 0) pin_write = P_RST;
+       if (strcmp(inputString_split[1], "SCLK") == 0) pin_write = P_SCLK;
+       if (strcmp(inputString_split[1], "CFGCLK") == 0) pin_write = P_CFGCLK;
+       if (strcmp(inputString_split[1], "MODE") == 0) pin_write = P_MODE;
+       if (strcmp(inputString_split[1], "PRIME") == 0) pin_write = P_PRIME;
+       if (strcmp(inputString_split[1], "LOOPNK_EN") == 0) pin_write = P_LOOPNK_EN;
+       if (strcmp(inputString_split[1], "CFGIN") == 0) pin_write = P_CFGIN;
+
+       if (pin_write > -1) digitalWrite(pin_write,  (inputString_split[2][0] == '1') ?  HIGH : LOW);
+       Serial.println("Write pin "+String(pin_write)+" to "+inputString_split[2]+" OK!");
     }
 
     // Clear the string for new input:
