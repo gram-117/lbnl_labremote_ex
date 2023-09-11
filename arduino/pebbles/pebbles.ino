@@ -78,6 +78,7 @@ void loop() {
        int pin_write = -1;
        if (strcmp(inputString_split[1], "RST") == 0) pin_write = P_RST;
        if (strcmp(inputString_split[1], "MODE") == 0) pin_write = P_MODE;
+       if (strcmp(inputString_split[1], "SCLK") == 0) pin_write = P_SCLK;
        if (strcmp(inputString_split[1], "PRIME") == 0) pin_write = P_PRIME;
        if (strcmp(inputString_split[1], "LOOPNK_EN") == 0) pin_write = P_LOOPNK_EN;
 
@@ -113,6 +114,8 @@ void ReadSOUT() {
   uint32_t value1[5] = {0};
   uint32_t value2[5] = {0};
   for(int iv=0; iv<5; iv++){
+    digitalWrite(P_SCLK, LOW);
+    digitalWrite(P_SCLK, LOW);
     for (int i = 0; i < 32; i++) {
         value1[iv] <<= 1;
         value2[iv] <<= 1;
@@ -122,7 +125,6 @@ void ReadSOUT() {
         digitalWrite(P_SCLK, LOW);
         if (digitalRead(P_SOUT2) == HIGH) value2[iv] |= 1 ;
     }
-    //delay(100);
   }
 
   String outString1 = String(value1[0], HEX);
@@ -140,7 +142,7 @@ void WriteConfig(uint32_t value) {
   digitalWrite(P_CFGCLK, LOW);
   digitalWrite(P_CFGIN, LOW);
 
-  for (int i = 31; i >= 6; i--) {  // Start from the most significant bit, only send 25 MSBs
+  for (int i = 31; i >= 10; i--) {  // Start from the most significant bit, only send 25 MSBs
     // Set data pin based on current bit value
     digitalWrite(P_CFGIN, (value & (1UL << i)) ? HIGH : LOW);
     

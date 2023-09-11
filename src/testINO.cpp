@@ -168,20 +168,27 @@ int main(int argc, char** argv)
 
   //clock
   std::shared_ptr<LMK03806INO> clock(new LMK03806INO(com));
-  configureClock(clock);
+  if (nDivide > 0) {
+    configureClock(clock);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  }
 
   std::cout<<"======== Configure PEBBLES chip:"<<std::endl;
   std::shared_ptr<PEBBLESINO> pebbles(new PEBBLESINO(com));
   pebbles->writeGPIO("LOOPNK_EN", 0);
 
   // toggle reset
+  pebbles->writeGPIO("PRIME", 0); // signal width is about 2 us 
+  pebbles->writeGPIO("MODE", 0); // signal width is about 2 us 
   pebbles->writeGPIO("RST", 2); // signal width is about 2 us 
   // send config for injection and enable
-  uint32_t CFGIN = (0b1110 << 28) | (0b1 << 10);
+  uint32_t CFGIN = (0b0010 << 28) | (0b010 << 10);
   pebbles->writeConfig(CFGIN);
   // send prime signal
-  pebbles->writeGPIO("PRIME", 2); // signal width is about 2 us 
+  pebbles->writeGPIO("PRIME", 1); // signal width is about 2 us 
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
   // send mode
+  pebbles->writeGPIO("SCLK", 2);
   pebbles->writeGPIO("MODE", 1);
   pebbles->readSOUT();
 
