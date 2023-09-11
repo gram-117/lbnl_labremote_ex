@@ -177,7 +177,7 @@ int main(int argc, char** argv)
   // toggle reset
   pebbles->writeGPIO("RST", 2); // signal width is about 2 us 
   // send config for injection and enable
-  int CFGIN = (0b1110 << 28) | (0b1 << 10);
+  uint32_t CFGIN = (0b1110 << 28) | (0b1 << 10);
   pebbles->writeConfig(CFGIN);
   // send prime signal
   pebbles->writeGPIO("PRIME", 2); // signal width is about 2 us 
