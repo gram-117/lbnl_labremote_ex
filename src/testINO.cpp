@@ -175,8 +175,11 @@ int main(int argc, char** argv)
 
   std::cout<<"======== Configure PEBBLES chip:"<<std::endl;
   std::shared_ptr<PEBBLESINO> pebbles(new PEBBLESINO(com));
-  pebbles->writeGPIO("LOOPNK_EN", 0);
+  pebbles->writeGPIO("LOOPNK_EN", 1);
 
+  for(int i=0; i<3; i++) {
+  std::cout<<"== start injection: ==================="<<std::endl;
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   pebbles->writeGPIO("PRIME", 0); 
   pebbles->writeGPIO("MODE", 0); 
   // toggle reset
@@ -191,6 +194,7 @@ int main(int argc, char** argv)
   pebbles->writeGPIO("SCLK", 2); // signal width is about 2 us 
   pebbles->writeGPIO("MODE", 1);
   pebbles->readSOUT();
+  }
 
 
   return 0;

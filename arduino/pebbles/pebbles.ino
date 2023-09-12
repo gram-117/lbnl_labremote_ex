@@ -114,8 +114,8 @@ void ReadSOUT() {
   uint32_t value1[5] = {0};
   uint32_t value2[5] = {0};
   for(int iv=0; iv<5; iv++){
-    digitalWrite(P_SCLK, LOW);
-    digitalWrite(P_SCLK, LOW);
+    //digitalWrite(P_SCLK, LOW);
+    //digitalWrite(P_SCLK, LOW);
     for (int i = 0; i < 32; i++) {
         value1[iv] <<= 1;
         value2[iv] <<= 1;
