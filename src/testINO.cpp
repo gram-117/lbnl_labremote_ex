@@ -22,6 +22,7 @@
 
 
 int nDivide = 9;
+std::string outFileName = "out.csv";
 
 int tsleep_write = 10;
 
@@ -161,6 +162,11 @@ int main(int argc, char** argv)
     nDivide = std::stoi(argv[1]);
   }
 
+  if(argc > 2)
+  {
+    outFileName = argv[2];
+  }
+
   std::shared_ptr<TextSerialCom> com(new TextSerialCom("/dev/ttyACM0", SerialCom::BaudRate::Baud9600));
   com->setTermination("\n");
   com->init();
@@ -177,25 +183,9 @@ int main(int argc, char** argv)
   std::shared_ptr<PEBBLESINO> pebbles(new PEBBLESINO(com));
   pebbles->writeGPIO("LOOPNK_EN", 1);
 
-  for(int i=0; i<3; i++) {
-  std::cout<<"== start injection: ==================="<<std::endl;
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  pebbles->writeGPIO("PRIME", 0); 
-  pebbles->writeGPIO("MODE", 0); 
-  // toggle reset
-  pebbles->writeGPIO("RST", 2); // signal width is about 2 us 
-  // send config for injection and enable
-  uint32_t CFGIN = (0b0010 << 28) | (0b010 << 10);
-  pebbles->writeConfig(CFGIN);
-  // send prime signal
-  pebbles->writeGPIO("PRIME", 1); 
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  // send mode
-  pebbles->writeGPIO("SCLK", 2); // signal width is about 2 us 
-  pebbles->writeGPIO("MODE", 1);
-  pebbles->readSOUT();
-  }
+  uint32_t cfgin = (0b0010 << 28) | (0b010 << 10);
 
+  pebbles->doScan(cfgin, 1000, outFileName, false);
 
   return 0;
 }
