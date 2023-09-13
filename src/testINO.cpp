@@ -218,7 +218,7 @@ int main(int argc, char** argv)
   std::cout<<"cfgin: "<<std::bitset<32>(cfgin)<<std::endl;
 
   //pebbles->doScan(cfgin, 5, outFileName, true);
-  pebbles->scanHitsVsThr(cfgin, PS, outFileName, 10, -0.3e-6, -0.5e-6, 10);
+  pebbles->scanHitsVsThr(cfgin, PS, outFileName, 20, -0.28e-6, -0.45e-6, 20);
 
   return 0;
 }
