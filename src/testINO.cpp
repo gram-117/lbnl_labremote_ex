@@ -19,6 +19,13 @@
 #include <TextSerialCom.h>
 #include <SerialCom.h>
 #include "Logger.h"
+#include <bitset>
+
+#include "PowerSupplyChannel.h"
+#include "EquipConf.h"
+
+
+std::string equipConfigFile = "equip_testbench.json";
 
 
 int nDivide = 9;
@@ -167,6 +174,18 @@ int main(int argc, char** argv)
     outFileName = argv[2];
   }
 
+  EquipConf hw;
+  hw.setHardwareConfig(equipConfigFile);
+  std::shared_ptr<PowerSupplyChannel> PS =
+          hw.getPowerSupplyChannel("Vin");
+  
+  PS->setVoltageProtect(0.60);
+  PS->setCurrentLevel(-2.0e-6);
+  PS->turnOn();
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  logger(logINFO) << "VBP_IREF voltage [V]: "<<PS->measureVoltage();
+  logger(logINFO) << "VBP_IREF current [A]: "<<PS->measureCurrent();
+
   std::shared_ptr<TextSerialCom> com(new TextSerialCom("/dev/ttyACM0", SerialCom::BaudRate::Baud9600));
   com->setTermination("\n");
   com->init();
@@ -183,9 +202,23 @@ int main(int argc, char** argv)
   std::shared_ptr<PEBBLESINO> pebbles(new PEBBLESINO(com));
   pebbles->writeGPIO("LOOPNK_EN", 1);
 
-  uint32_t cfgin = (0b0010 << 28) | (0b010 << 10);
 
-  pebbles->doScan(cfgin, 1000, outFileName, false);
+  int ch = 15;
+  uint32_t inj = 10;
+  std::cout<<"Injecting on channel: "<<ch<<std::endl;
+  float Qinj = 10000.0*inj*0.9*1.46/(5*1.6);
+  std::cout<<"Injection config: "<<inj<<", injection charge = "<<Qinj<<" electrons"<<std::endl;
+
+  uint32_t inj_reversed = 
+        ((inj & 0b0001) << 3) | 
+        ((inj & 0b0010) << 1) | 
+        ((inj & 0b0100) >> 1) | 
+        ((inj & 0b1000) >> 3);
+  uint32_t cfgin = (0b1 << (31-ch)) | (inj_reversed << 10);
+  std::cout<<"cfgin: "<<std::bitset<32>(cfgin)<<std::endl;
+
+  //pebbles->doScan(cfgin, 5, outFileName, true);
+  pebbles->scanHitsVsThr(cfgin, PS, outFileName, 10, -0.3e-6, -0.5e-6, 10);
 
   return 0;
 }
