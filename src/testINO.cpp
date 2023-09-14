@@ -186,7 +186,7 @@ int main(int argc, char** argv)
   logger(logINFO) << "VBP_IREF voltage [V]: "<<PS->measureVoltage();
   logger(logINFO) << "VBP_IREF current [A]: "<<PS->measureCurrent();
 
-  std::shared_ptr<TextSerialCom> com(new TextSerialCom("/dev/ttyACM0", SerialCom::BaudRate::Baud9600));
+  std::shared_ptr<TextSerialCom> com(new TextSerialCom("/dev/ttyACM0", SerialCom::BaudRate::Baud115200));
   com->setTermination("\n");
   com->init();
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -217,8 +217,16 @@ int main(int argc, char** argv)
   uint32_t cfgin = (0b1 << (31-ch)) | (inj_reversed << 10);
   std::cout<<"cfgin: "<<std::bitset<32>(cfgin)<<std::endl;
 
-  //pebbles->doScan(cfgin, 5, outFileName, true);
-  pebbles->scanHitsVsThr(cfgin, PS, outFileName, 20, -0.28e-6, -0.45e-6, 20);
+  pebbles->doScan(cfgin, 3, outFileName, true);
+  //
+  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -6.8e-6, -8.2e-6, 36);// ch15, inj 10
+  //
+  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -5.2e-6, -6.4e-6, 36);// ch15, inj 7
+  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -4.6e-6, -5.8e-6, 36);// ch15, inj 6
+  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -3.8e-6, -5.0e-6, 36);// ch15, inj 5
+  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -3.0e-6, -4.2e-6, 36);// ch15, inj 4
+  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -1.2e-6, -2.4e-6, 36);// ch15, inj 2
+  
 
   return 0;
 }

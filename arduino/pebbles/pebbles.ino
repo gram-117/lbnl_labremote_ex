@@ -30,7 +30,7 @@ char inputString_split[MAX_PARTS][MAX_STRING_SIZE];
 
 
 void setup() {
-  Serial.begin(9600);           // Starts the serial communication
+  Serial.begin(115200);           // Starts the serial communication
   inputString.reserve(200);     // Reserve 200 bytes for the inputString
 
   pinMode(LED, OUTPUT);
@@ -95,7 +95,8 @@ void loop() {
                 digitalWrite(pin_write,  LOW);
             }
        }
-       Serial.println("Write pin "+String(pin_write)+"("+inputString_split[1]+") to "+inputString_split[2]+" OK!");
+       //Serial.println("Write pin "+String(pin_write)+"("+inputString_split[1]+") to "+inputString_split[2]+" OK!");
+       Serial.println("OK!");
     }
 
     if (inputString.indexOf("ReadSOUT") != -1) {
@@ -114,14 +115,14 @@ void ReadSOUT() {
   uint32_t value1[5] = {0};
   uint32_t value2[5] = {0};
   for(int iv=0; iv<5; iv++){
-    //digitalWrite(P_SCLK, LOW);
-    //digitalWrite(P_SCLK, LOW);
+    digitalWrite(P_SCLK, LOW);
+    digitalWrite(P_SCLK, LOW);
     for (int i = 0; i < 32; i++) {
         value1[iv] <<= 1;
         value2[iv] <<= 1;
         if(iv == 4 && i > 5) continue;
-        digitalWrite(P_SCLK, HIGH);
         if (digitalRead(P_SOUT1) == HIGH) value1[iv] |= 1 ;
+        digitalWrite(P_SCLK, HIGH);
         digitalWrite(P_SCLK, LOW);
         if (digitalRead(P_SOUT2) == HIGH) value2[iv] |= 1 ;
     }
