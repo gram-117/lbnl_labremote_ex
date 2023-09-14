@@ -114,15 +114,21 @@ void ReadSOUT() {
   // in total 133 bits, use 5 of 32 bit integers
   uint32_t value1[5] = {0};
   uint32_t value2[5] = {0};
+
+  // read first bit
+  if (digitalRead(P_SOUT1) == HIGH) value1[0] |= 1 ;
+  if (digitalRead(P_SOUT2) == HIGH) value2[0] |= 1 ;
+
   for(int iv=0; iv<5; iv++){
-    digitalWrite(P_SCLK, LOW);
-    digitalWrite(P_SCLK, LOW);
+    //digitalWrite(P_SCLK, LOW);
+    //digitalWrite(P_SCLK, LOW);
     for (int i = 0; i < 32; i++) {
+        if(iv==0 && i==31) continue;
         value1[iv] <<= 1;
         value2[iv] <<= 1;
-        if(iv == 4 && i > 5) continue;
-        if (digitalRead(P_SOUT1) == HIGH) value1[iv] |= 1 ;
+        if(iv == 4 && i > 6) continue;
         digitalWrite(P_SCLK, HIGH);
+        if (digitalRead(P_SOUT1) == HIGH) value1[iv] |= 1 ;
         digitalWrite(P_SCLK, LOW);
         if (digitalRead(P_SOUT2) == HIGH) value2[iv] |= 1 ;
     }

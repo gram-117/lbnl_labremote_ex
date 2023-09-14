@@ -28,7 +28,10 @@
 std::string equipConfigFile = "equip_testbench.json";
 
 
-int nDivide = 9;
+
+float F_VCO = 2640.0;//VCO frequency, measured with scope
+int nDivide = 7;
+int nDivide_in = 7;
 std::string outFileName = "out.csv";
 
 int tsleep_write = 10;
@@ -166,7 +169,8 @@ int main(int argc, char** argv)
 {  
   if(argc > 1)
   {
-    nDivide = std::stoi(argv[1]);
+    nDivide_in = std::stoi(argv[1]);
+    if (nDivide_in > 0) nDivide = nDivide_in;
   }
 
   if(argc > 2)
@@ -193,13 +197,13 @@ int main(int argc, char** argv)
 
   //clock
   std::shared_ptr<LMK03806INO> clock(new LMK03806INO(com));
-  if (nDivide > 0) {
+  if (nDivide_in > 0) {
     configureClock(clock);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 
   std::cout<<"======== Configure PEBBLES chip:"<<std::endl;
-  std::shared_ptr<PEBBLESINO> pebbles(new PEBBLESINO(com));
+  std::shared_ptr<PEBBLESINO> pebbles(new PEBBLESINO(com, 1000.0/(F_VCO/nDivide)));
   pebbles->writeGPIO("LOOPNK_EN", 1);
 
 
