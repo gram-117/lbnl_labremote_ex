@@ -180,15 +180,36 @@ int main(int argc, char** argv)
 
   EquipConf hw;
   hw.setHardwareConfig(equipConfigFile);
-  std::shared_ptr<PowerSupplyChannel> PS =
-          hw.getPowerSupplyChannel("Vin");
-  
-  PS->setVoltageProtect(0.60);
-  PS->setCurrentLevel(-2.0e-6);
-  PS->turnOn();
+
+  std::shared_ptr<PowerSupplyChannel> ps_vbp_iref = hw.getPowerSupplyChannel("VBP_IREF");
+  ps_vbp_iref->setVoltageProtect(0.60);
+  ps_vbp_iref->setCurrentLevel(-10.0e-6);
+  ps_vbp_iref->turnOn();
+
+  std::shared_ptr<PowerSupplyChannel> ps_vcal = hw.getPowerSupplyChannel("VCAL");
+  ps_vcal->setVoltageLevel(0.8);
+  ps_vcal->turnOn();
+
+  std::shared_ptr<PowerSupplyChannel> ps_vff = hw.getPowerSupplyChannel("VFF");
+  ps_vff->setVoltageLevel(0.131);
+  ps_vff->turnOn();
+
+  std::shared_ptr<PowerSupplyChannel> ps_vaf = hw.getPowerSupplyChannel("VAF");
+  ps_vaf->setVoltageLevel(0.177);
+  ps_vaf->turnOn();
+
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  logger(logINFO) << "VBP_IREF voltage [V]: "<<PS->measureVoltage();
-  logger(logINFO) << "VBP_IREF current [A]: "<<PS->measureCurrent();
+  logger(logINFO) << "vbp_iref voltage [V]: "<<ps_vbp_iref->measureVoltage();
+  logger(logINFO) << "vbp_iref current [A]: "<<ps_vbp_iref->measureCurrent();
+
+  logger(logINFO) << "vcal voltage [V]: "<<ps_vcal->measureVoltage();
+  logger(logINFO) << "vcal current [A]: "<<ps_vcal->measureCurrent();
+
+  logger(logINFO) << "vff voltage [V]: "<<ps_vff->measureVoltage();
+  logger(logINFO) << "vff current [A]: "<<ps_vff->measureCurrent();
+
+  logger(logINFO) << "vaf voltage [V]: "<<ps_vaf->measureVoltage();
+  logger(logINFO) << "vaf current [A]: "<<ps_vaf->measureCurrent();
 
   std::shared_ptr<TextSerialCom> com(new TextSerialCom("/dev/ttyACM0", SerialCom::BaudRate::Baud115200));
   com->setTermination("\n");
@@ -207,8 +228,8 @@ int main(int argc, char** argv)
   pebbles->writeGPIO("LOOPNK_EN", 1);
 
 
-  int ch = 11;
-  uint32_t inj = 1;
+  int ch = 3;
+  uint32_t inj = 5;
   std::cout<<"Injecting on channel: "<<ch<<std::endl;
   float Qinj = 10000.0*inj*0.9*1.46/(5*1.6);
   std::cout<<"Injection config: "<<inj<<", injection charge = "<<Qinj<<" electrons"<<std::endl;
@@ -221,25 +242,34 @@ int main(int argc, char** argv)
   uint32_t cfgin = (0b1 << (31-ch)) | (inj_reversed << 10);
   std::cout<<"cfgin: "<<std::bitset<32>(cfgin)<<std::endl;
 
-  //pebbles->doScan(cfgin, 3, outFileName, true);
+  pebbles->doScan(cfgin, 3, outFileName, true);
   //pebbles->doScan(cfgin, 5000, outFileName, false);
 
-  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -6.8e-6, -8.2e-6, 36);// ch15, inj 10
-  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -5.2e-6, -6.4e-6, 36);// ch15, inj 7
-  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -4.6e-6, -5.8e-6, 36);// ch15, inj 6
-  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -3.8e-6, -5.0e-6, 36);// ch15, inj 5
-  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -3.0e-6, -4.2e-6, 36);// ch15, inj 4
-  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -1.2e-6, -2.4e-6, 36);// ch15, inj 2
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -6.8e-6, -8.2e-6, 36);// ch15, inj 10
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -5.2e-6, -6.4e-6, 36);// ch15, inj 7
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -4.6e-6, -5.8e-6, 36);// ch15, inj 6
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -3.8e-6, -5.0e-6, 36);// ch15, inj 5
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -3.0e-6, -4.2e-6, 36);// ch15, inj 4
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -1.2e-6, -2.4e-6, 36);// ch15, inj 2
 
 
-  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -15.0e-6, -17.5e-6, 40);// ch11, inj 10
-  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -8.5e-6, -11.5e-6, 40);// ch11, inj 5
-  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -7.5e-6, -9.5e-6, 40);// ch11, inj 4
-  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -5.6e-6, -7.6e-6, 40);// ch11, inj 3
-  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -4.0e-6, -6.0e-6, 40);// ch11, inj 2
-  pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -1.8e-6, -3.2e-6, 40);// ch11, inj 1
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -15.0e-6, -17.5e-6, 40);// ch11, inj 10
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -8.5e-6, -11.5e-6, 40);// ch11, inj 5
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -7.5e-6, -9.5e-6, 40);// ch11, inj 4
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -5.6e-6, -7.6e-6, 40);// ch11, inj 3
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -4.0e-6, -6.0e-6, 40);// ch11, inj 2
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -1.8e-6, -3.2e-6, 40);// ch11, inj 1
 
 
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -18.0e-6, -22.0e-6, 40);// ch3, inj 5
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -15.5e-6, -19.5e-6, 40);// ch3, inj 4
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -12.0e-6, -16.0e-6, 40);// ch3, inj 3
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -8.5e-6, -12.5e-6, 40);// ch3, inj 2
+  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -4.0e-6, -7.0e-6, 40);// ch3, inj 1
+  
+  
+  
+  
   //pebbles->scanTimeVsInj(ch, outFileName, 3000, 3, 15, true);//ch15, thr2
 
   return 0;

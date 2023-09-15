@@ -11,14 +11,41 @@
                 "gpib_addr": 20,
                 "read_tmo_ms": 1000
             }
+        },
+        {
+            "name": "LV2",
+            "hw-type": "PS",
+            "hw-model": "RigolDP832",
+            "communication": {
+                "protocol": "CharDeviceCom",
+                "port": "/dev/usbtmc0"
+            }
         }
     ],
     "channels": [
         {
-            "name": "Vin",
+            "name": "VBP_IREF",
             "hw-type": "PS",
             "device": "LV",
             "channel": 1
+        },
+        {
+            "name": "VCAL",
+            "hw-type": "PS",
+            "device": "LV2",
+            "channel": 1
+        },
+        {
+            "name": "VFF",
+            "hw-type": "PS",
+            "device": "LV2",
+            "channel": 2
+        },
+        {
+            "name": "VAF",
+            "hw-type": "PS",
+            "device": "LV2",
+            "channel": 3
         }
     ]
 }
