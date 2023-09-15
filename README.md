@@ -16,3 +16,8 @@ cd run
 ```
 
 where 7 is the divider for the output clock (from 2640MHz)
+
+- upload sketch to arduino:
+```
+arduino --upload --board arduino:sam:arduino_due_x --port /dev/ttyACM0 arduino/pebbles/pebbles.ino
+```
