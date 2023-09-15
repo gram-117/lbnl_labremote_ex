@@ -1,0 +1,24 @@
+{
+    "version": "1.0",
+    "devices": [
+        {
+            "name": "LV",
+            "hw-type": "PS",
+            "hw-model": "Keithley24XX",
+            "communication": {
+                "protocol": "GPIBSerialCom",
+                "port": "/dev/ttyUSB0",
+                "gpib_addr": 20,
+                "read_tmo_ms": 1000
+            }
+        }
+    ],
+    "channels": [
+        {
+            "name": "Vin",
+            "hw-type": "PS",
+            "device": "LV",
+            "channel": 1
+        }
+    ]
+}

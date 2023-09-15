@@ -11,8 +11,8 @@ cmake3 ..
 
 - run:
 ```
-cd build
-./test 9
+cd run
+./testINO 7
 ```
 
-where 9 is the divider for the output clock (from 2500MHz)
+where 7 is the divider for the output clock (from 2640MHz)
