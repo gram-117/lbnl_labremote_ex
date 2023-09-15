@@ -221,7 +221,8 @@ int main(int argc, char** argv)
   uint32_t cfgin = (0b1 << (31-ch)) | (inj_reversed << 10);
   std::cout<<"cfgin: "<<std::bitset<32>(cfgin)<<std::endl;
 
-  pebbles->doScan(cfgin, 3, outFileName, true);
+  //pebbles->doScan(cfgin, 3, outFileName, true);
+  //pebbles->doScan(cfgin, 5000, outFileName, false);
   //
   //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -6.8e-6, -8.2e-6, 36);// ch15, inj 10
   //
@@ -231,6 +232,6 @@ int main(int argc, char** argv)
   //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -3.0e-6, -4.2e-6, 36);// ch15, inj 4
   //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -1.2e-6, -2.4e-6, 36);// ch15, inj 2
   
-
+  pebbles->scanTimeVsInj(ch, outFileName, 2000, 3, 15);
   return 0;
 }
