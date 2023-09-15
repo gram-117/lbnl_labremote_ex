@@ -33,7 +33,7 @@
             "name": "VCAL",
             "hw-type": "PS",
             "device": "LV2",
-            "channel": 1
+            "channel": 3
         },
         {
             "name": "VFF",
@@ -45,7 +45,7 @@
             "name": "VAF",
             "hw-type": "PS",
             "device": "LV2",
-            "channel": 3
+            "channel": 1
         }
     ]
 }

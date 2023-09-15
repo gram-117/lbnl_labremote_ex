@@ -183,27 +183,30 @@ int main(int argc, char** argv)
 
   std::shared_ptr<PowerSupplyChannel> ps_vbp_iref = hw.getPowerSupplyChannel("VBP_IREF");
   ps_vbp_iref->setVoltageProtect(0.60);
-  ps_vbp_iref->setCurrentLevel(-10.0e-6);
+  // iref for 1000 e thr:
+  // ch11: 1.31
+  // ch3: 4.556
+  // ch15: 1.181
+  ps_vbp_iref->setCurrentLevel(-2.8e-6);
+
   ps_vbp_iref->turnOn();
 
   std::shared_ptr<PowerSupplyChannel> ps_vcal = hw.getPowerSupplyChannel("VCAL");
-  ps_vcal->setVoltageLevel(0.8);
+  ps_vcal->setVoltageLevel(0.0);
   ps_vcal->turnOn();
 
   std::shared_ptr<PowerSupplyChannel> ps_vff = hw.getPowerSupplyChannel("VFF");
-  ps_vff->setVoltageLevel(0.131);
-  ps_vff->turnOn();
+  //ps_vff->setVoltageLevel(0.131);
+  //ps_vff->turnOn();
 
   std::shared_ptr<PowerSupplyChannel> ps_vaf = hw.getPowerSupplyChannel("VAF");
-  ps_vaf->setVoltageLevel(0.177);
-  ps_vaf->turnOn();
+  //ps_vaf->setVoltageLevel(0.177);
+  //ps_vaf->turnOn();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   logger(logINFO) << "vbp_iref voltage [V]: "<<ps_vbp_iref->measureVoltage();
   logger(logINFO) << "vbp_iref current [A]: "<<ps_vbp_iref->measureCurrent();
 
-  logger(logINFO) << "vcal voltage [V]: "<<ps_vcal->measureVoltage();
-  logger(logINFO) << "vcal current [A]: "<<ps_vcal->measureCurrent();
 
   logger(logINFO) << "vff voltage [V]: "<<ps_vff->measureVoltage();
   logger(logINFO) << "vff current [A]: "<<ps_vff->measureCurrent();
@@ -227,11 +230,18 @@ int main(int argc, char** argv)
   std::shared_ptr<PEBBLESINO> pebbles(new PEBBLESINO(com, 1000.0/(F_VCO/nDivide)));
   pebbles->writeGPIO("LOOPNK_EN", 1);
 
+  float vcal = 0.1;
+  ps_vcal->setVoltageLevel(vcal);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-  int ch = 3;
-  uint32_t inj = 5;
+  logger(logINFO) << "vcal voltage [V]: "<<ps_vcal->measureVoltage();
+  logger(logINFO) << "vcal current [A]: "<<ps_vcal->measureCurrent();
+
+  int ch = 11;
+  uint32_t inj = 1;
   std::cout<<"Injecting on channel: "<<ch<<std::endl;
-  float Qinj = 10000.0*inj*0.9*1.46/(5*1.6);
+  float Qinj = 10000.0*(inj*0.9 + vcal)*1.46/(5*1.6);
+
   std::cout<<"Injection config: "<<inj<<", injection charge = "<<Qinj<<" electrons"<<std::endl;
 
   uint32_t inj_reversed = 
@@ -242,8 +252,13 @@ int main(int argc, char** argv)
   uint32_t cfgin = (0b1 << (31-ch)) | (inj_reversed << 10);
   std::cout<<"cfgin: "<<std::bitset<32>(cfgin)<<std::endl;
 
-  pebbles->doScan(cfgin, 3, outFileName, true);
+  //pebbles->doScan(cfgin, 3, outFileName, true);
   //pebbles->doScan(cfgin, 5000, outFileName, false);
+  //
+
+  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch11, thr 1.31
+  pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 1600, 2400, 40, false);//ch11, thr 2.80
+
 
   //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -6.8e-6, -8.2e-6, 36);// ch15, inj 10
   //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -5.2e-6, -6.4e-6, 36);// ch15, inj 7
