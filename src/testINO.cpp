@@ -207,8 +207,8 @@ int main(int argc, char** argv)
   pebbles->writeGPIO("LOOPNK_EN", 1);
 
 
-  int ch = 15;
-  uint32_t inj = 10;
+  int ch = 11;
+  uint32_t inj = 1;
   std::cout<<"Injecting on channel: "<<ch<<std::endl;
   float Qinj = 10000.0*inj*0.9*1.46/(5*1.6);
   std::cout<<"Injection config: "<<inj<<", injection charge = "<<Qinj<<" electrons"<<std::endl;
@@ -223,15 +223,24 @@ int main(int argc, char** argv)
 
   //pebbles->doScan(cfgin, 3, outFileName, true);
   //pebbles->doScan(cfgin, 5000, outFileName, false);
-  //
+
   //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -6.8e-6, -8.2e-6, 36);// ch15, inj 10
-  //
   //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -5.2e-6, -6.4e-6, 36);// ch15, inj 7
   //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -4.6e-6, -5.8e-6, 36);// ch15, inj 6
   //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -3.8e-6, -5.0e-6, 36);// ch15, inj 5
   //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -3.0e-6, -4.2e-6, 36);// ch15, inj 4
   //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -1.2e-6, -2.4e-6, 36);// ch15, inj 2
-  
-  pebbles->scanTimeVsInj(ch, outFileName, 2000, 3, 15);
+
+
+  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -15.0e-6, -17.5e-6, 40);// ch11, inj 10
+  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -8.5e-6, -11.5e-6, 40);// ch11, inj 5
+  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -7.5e-6, -9.5e-6, 40);// ch11, inj 4
+  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -5.6e-6, -7.6e-6, 40);// ch11, inj 3
+  //pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -4.0e-6, -6.0e-6, 40);// ch11, inj 2
+  pebbles->scanHitsVsThr(cfgin, PS, outFileName, 500, -1.8e-6, -3.2e-6, 40);// ch11, inj 1
+
+
+  //pebbles->scanTimeVsInj(ch, outFileName, 3000, 3, 15, true);//ch15, thr2
+
   return 0;
 }
