@@ -185,9 +185,9 @@ int main(int argc, char** argv)
   ps_vbp_iref->setVoltageProtect(0.60);
   // iref for 1000 e thr:
   // ch11: 1.31
-  // ch3: 4.556
-  // ch15: 1.181
-  ps_vbp_iref->setCurrentLevel(-2.8e-6);
+  // ch3: 3.5
+  // ch15: 0.5
+  ps_vbp_iref->setCurrentLevel(-1.31e-6);
 
   ps_vbp_iref->turnOn();
 
@@ -230,7 +230,7 @@ int main(int argc, char** argv)
   std::shared_ptr<PEBBLESINO> pebbles(new PEBBLESINO(com, 1000.0/(F_VCO/nDivide)));
   pebbles->writeGPIO("LOOPNK_EN", 1);
 
-  float vcal = 0.1;
+  float vcal = 0.0;
   ps_vcal->setVoltageLevel(vcal);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
@@ -257,7 +257,9 @@ int main(int argc, char** argv)
   //
 
   //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch11, thr 1.31
-  pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 1600, 2400, 40, false);//ch11, thr 2.80
+  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 1600, 2400, 40, false);//ch11, thr 2.80
+  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch11, thr 3.5
+  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 800, 1600, 40, false);//ch11, thr 3.5
 
 
   //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -6.8e-6, -8.2e-6, 36);// ch15, inj 10
@@ -286,6 +288,8 @@ int main(int argc, char** argv)
   
   
   //pebbles->scanTimeVsInj(ch, outFileName, 3000, 3, 15, true);//ch15, thr2
+  //pebbles->scanTimeVsInj(ch, outFileName, 3000, 1, 15, true);//ch11, thr1p31
+  pebbles->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1, 5, true, 0.3);//ch11, thr1p31
 
   return 0;
 }
