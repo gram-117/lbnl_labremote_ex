@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <map>
 #include <bitset>
+#include <vector>
 
 #include <FT232H.h>
 #include <HYT271.h>
@@ -35,6 +36,7 @@ int nDivide_in = 7;
 std::string outFileName = "out.csv";
 
 int tsleep_write = 10;
+
 
 void configureClock(std::shared_ptr<LMK03806INO> clock){
   std::cout<<"======== Configure LMK03806 CLOCK:"<<std::endl;
@@ -165,6 +167,21 @@ void configureClock(std::shared_ptr<LMK03806INO> clock){
   std::cout<<"======== Configure LMK03806 CLOCK done ============="<<std::endl;
 }
 
+void calibrateTDC(std::shared_ptr<LMK03806INO> clock, std::shared_ptr<PEBBLESINO> pebbles, uint32_t cfgin){
+
+  int nDivide_back = nDivide;
+  nDivide = 4;
+
+  configureClock(clock);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  pebbles->calibrateTDC(cfgin, 1000.0/(F_VCO/nDivide), 1000);
+
+  nDivide = nDivide_back;
+
+  configureClock(clock);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+}
 int main(int argc, char** argv) 
 {  
   if(argc > 1)
@@ -196,12 +213,12 @@ int main(int argc, char** argv)
   ps_vcal->turnOn();
 
   std::shared_ptr<PowerSupplyChannel> ps_vff = hw.getPowerSupplyChannel("VFF");
-  //ps_vff->setVoltageLevel(0.131);
-  //ps_vff->turnOn();
+  ps_vff->setVoltageLevel(0.131);
+  ps_vff->turnOn();
 
   std::shared_ptr<PowerSupplyChannel> ps_vaf = hw.getPowerSupplyChannel("VAF");
-  //ps_vaf->setVoltageLevel(0.177);
-  //ps_vaf->turnOn();
+  ps_vaf->setVoltageLevel(0.168);
+  ps_vaf->turnOn();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   logger(logINFO) << "vbp_iref voltage [V]: "<<ps_vbp_iref->measureVoltage();
@@ -238,7 +255,7 @@ int main(int argc, char** argv)
   logger(logINFO) << "vcal current [A]: "<<ps_vcal->measureCurrent();
 
   int ch = 11;
-  uint32_t inj = 1;
+  uint32_t inj = 3;
   std::cout<<"Injecting on channel: "<<ch<<std::endl;
   float Qinj = 10000.0*(inj*0.9 + vcal)*1.46/(5*1.6);
 
@@ -252,6 +269,9 @@ int main(int argc, char** argv)
   uint32_t cfgin = (0b1 << (31-ch)) | (inj_reversed << 10);
   std::cout<<"cfgin: "<<std::bitset<32>(cfgin)<<std::endl;
 
+  //calibrate TDC
+  calibrateTDC(clock, pebbles, cfgin);
+
   //pebbles->doScan(cfgin, 3, outFileName, true);
   //pebbles->doScan(cfgin, 5000, outFileName, false);
   //
@@ -260,6 +280,20 @@ int main(int argc, char** argv)
   //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 1600, 2400, 40, false);//ch11, thr 2.80
   //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch11, thr 3.5
   //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 800, 1600, 40, false);//ch11, thr 3.5
+
+  /*
+  std::vector<float> scan_vff = {0.10, 0.13, 0.18, 0.20};
+  std::vector<float> scan_iref = {-2.2e-6, -1.31e-6, -0.7e-6, -0.59e-6};
+
+  for (int ivff = 0; ivff<scan_vff.size(); ivff++) {
+      ps_vff->setVoltageLevel(scan_vff[ivff]);
+      ps_vaf->setVoltageLevel(scan_vff[ivff]+0.177-0.131-0.01);
+      ps_vbp_iref->setCurrentLevel(scan_iref[ivff]);
+      std::cout<<"scanning for vff = "<<scan_vff[ivff]<<std::endl;
+      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+      pebbles->scanHitsVsInj(ch, ps_vcal, "vff"+std::to_string(scan_vff[ivff])+"_"+outFileName, 500, 700, 1500, 40, false);//ch11, thr 1.31
+  }
+  */
 
 
   //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -6.8e-6, -8.2e-6, 36);// ch15, inj 10
@@ -289,7 +323,7 @@ int main(int argc, char** argv)
   
   //pebbles->scanTimeVsInj(ch, outFileName, 3000, 3, 15, true);//ch15, thr2
   //pebbles->scanTimeVsInj(ch, outFileName, 3000, 1, 15, true);//ch11, thr1p31
-  pebbles->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1, 5, true, 0.3);//ch11, thr1p31
+  pebbles->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1.0, 15.0, true, 0.3); // ch11, thr1p31, step0.3
 
   return 0;
 }
