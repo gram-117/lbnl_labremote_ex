@@ -201,10 +201,17 @@ int main(int argc, char** argv)
   std::shared_ptr<PowerSupplyChannel> ps_vbp_iref = hw.getPowerSupplyChannel("VBP_IREF");
   ps_vbp_iref->setVoltageProtect(0.60);
   // iref for 1000 e thr:
+  // ch10: 0.78
   // ch11: 1.31
+  // ch12: 1.90
+  // ch13: 0.6
   // ch3: 3.5
+  // ch7: 4.5
   // ch15: 0.5
-  ps_vbp_iref->setCurrentLevel(-1.31e-6);
+  // ch11, 2000e: 2.80
+  // ch11, 3000e: 4.30
+  // ch11, 4000e: 5.50
+  ps_vbp_iref->setCurrentLevel(-0.5e-6);
 
   ps_vbp_iref->turnOn();
 
@@ -213,12 +220,12 @@ int main(int argc, char** argv)
   ps_vcal->turnOn();
 
   std::shared_ptr<PowerSupplyChannel> ps_vff = hw.getPowerSupplyChannel("VFF");
-  ps_vff->setVoltageLevel(0.131);
-  ps_vff->turnOn();
+  //ps_vff->setVoltageLevel(0.131);
+  //ps_vff->turnOn();
 
   std::shared_ptr<PowerSupplyChannel> ps_vaf = hw.getPowerSupplyChannel("VAF");
-  ps_vaf->setVoltageLevel(0.168);
-  ps_vaf->turnOn();
+  //ps_vaf->setVoltageLevel(0.168);
+  //ps_vaf->turnOn();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   logger(logINFO) << "vbp_iref voltage [V]: "<<ps_vbp_iref->measureVoltage();
@@ -254,7 +261,7 @@ int main(int argc, char** argv)
   logger(logINFO) << "vcal voltage [V]: "<<ps_vcal->measureVoltage();
   logger(logINFO) << "vcal current [A]: "<<ps_vcal->measureCurrent();
 
-  int ch = 11;
+  int ch = 15;
   uint32_t inj = 3;
   std::cout<<"Injecting on channel: "<<ch<<std::endl;
   float Qinj = 10000.0*(inj*0.9 + vcal)*1.46/(5*1.6);
@@ -270,7 +277,7 @@ int main(int argc, char** argv)
   std::cout<<"cfgin: "<<std::bitset<32>(cfgin)<<std::endl;
 
   //calibrate TDC
-  calibrateTDC(clock, pebbles, cfgin);
+  //calibrateTDC(clock, pebbles, cfgin);
 
   //pebbles->doScan(cfgin, 3, outFileName, true);
   //pebbles->doScan(cfgin, 5000, outFileName, false);
@@ -278,8 +285,14 @@ int main(int argc, char** argv)
 
   //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch11, thr 1.31
   //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 1600, 2400, 40, false);//ch11, thr 2.80
+  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 2400, 3600, 50, false);//ch11, thr 4.3
+  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 3400, 4600, 50, false);//ch11, thr 5.5
   //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch11, thr 3.5
   //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 800, 1600, 40, false);//ch11, thr 3.5
+  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch12, thr 1.90
+  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch13, thr 0.6
+  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch10, thr 0.78
+  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch7, thr 4.5
 
   /*
   std::vector<float> scan_vff = {0.10, 0.13, 0.18, 0.20};
@@ -323,7 +336,9 @@ int main(int argc, char** argv)
   
   //pebbles->scanTimeVsInj(ch, outFileName, 3000, 3, 15, true);//ch15, thr2
   //pebbles->scanTimeVsInj(ch, outFileName, 3000, 1, 15, true);//ch11, thr1p31
-  pebbles->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1.0, 15.0, true, 0.3); // ch11, thr1p31, step0.3
+  //pebbles->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1.0, 15.0, true, 0.3); // ch11, thr1p31, step0.3
+  //pebbles->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1.0, 15.0, true, 0.3); // ch11, thr1p31, step0.3
+  pebbles->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1.0, 15.0, true, 0.3); // ch7, thr4p5, step0.3
 
   return 0;
 }
