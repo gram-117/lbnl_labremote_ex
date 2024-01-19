@@ -10,6 +10,7 @@ const uint8_t LMK_LATCH = 4;
 const uint8_t LMK_SDI = 5;
 
 // pebbles pins
+const uint8_t P_TDCDOUT = 40;
 const uint8_t P_SOUT2 = 22;
 const uint8_t P_SOUT1 = 24;
 const uint8_t P_RST = 26;
@@ -39,6 +40,7 @@ void setup() {
   pinMode(LMK_LATCH, OUTPUT);
   pinMode(LMK_SDI, OUTPUT);
 
+  pinMode(P_TDCDOUT, INPUT);
   pinMode(P_SOUT2, INPUT);
   pinMode(P_SOUT1, INPUT);
   pinMode(P_RST, OUTPUT);

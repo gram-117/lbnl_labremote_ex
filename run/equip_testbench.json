@@ -20,6 +20,28 @@
                 "protocol": "CharDeviceCom",
                 "port": "/dev/usbtmc0"
             }
+        },
+        {
+            "name": "LV_TDC",
+            "hw-type": "PS",
+            "hw-model": "AgilentE3634APs",
+            "communication": {
+                "protocol": "GPIBSerialCom",
+                "gpib_addr": 10,
+                "read_tmo_ms": 1000,
+                "port": "/dev/ttyUSB1"
+            }
+        },
+        {
+            "name": "Keithley_TDC",
+            "hw-type": "PS",
+            "hw-model": "Keithley24XX",
+            "communication": {
+                "protocol": "GPIBSerialCom",
+                "gpib_addr": 6,
+                "read_tmo_ms": 1000,
+                "port": "/dev/ttyUSB1"
+            }
         }
     ],
     "channels": [
@@ -45,6 +67,12 @@
             "name": "VAF",
             "hw-type": "PS",
             "device": "LV2",
+            "channel": 1
+        },
+        {
+            "name": "VthComp",
+            "hw-type": "PS",
+            "device": "LV_TDC",
             "channel": 1
         }
     ]
