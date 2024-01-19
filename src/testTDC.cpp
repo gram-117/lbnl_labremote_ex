@@ -16,7 +16,7 @@
 #include <ComIOException.h>
 #include <SPIFTDICom.h>
 #include <LMK03806INO.h>
-#include <PEBBLESINO.h>
+#include <METAROCKINO.h>
 #include <TextSerialCom.h>
 #include <SerialCom.h>
 #include "Logger.h"
@@ -175,14 +175,14 @@ void configureClock(std::shared_ptr<LMK03806INO> clock){
   std::cout<<"======== Configure LMK03806 CLOCK done ============="<<std::endl;
 }
 
-void calibrateTDC(std::shared_ptr<LMK03806INO> clock, std::shared_ptr<PEBBLESINO> pebbles, uint32_t cfgin){
+void calibrateTDC(std::shared_ptr<LMK03806INO> clock, std::shared_ptr<METAROCKINO> metarock, uint32_t cfgin){
 
   int nDivide_back = nDivide;
   nDivide = 4;
 
   configureClock(clock);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  pebbles->calibrateTDC(cfgin, 1000.0/(F_VCO/nDivide), 1000);
+  metarock->calibrateTDC(cfgin, 1000.0/(F_VCO/nDivide), 200);
 
   nDivide = nDivide_back;
 
@@ -203,6 +203,44 @@ int main(int argc, char** argv)
     outFileName = argv[2];
   }
 
+  EquipConf hw;
+  hw.setHardwareConfig(equipConfigFile);
+
+  std::shared_ptr<PowerSupplyChannel> ps_vbp_iref = hw.getPowerSupplyChannel("VBP_IREF");
+  ps_vbp_iref->setVoltageProtect(0.60);
+  ps_vbp_iref->setCurrentLevel(-4.8e-6);
+
+  ps_vbp_iref->turnOn();
+
+  std::shared_ptr<PowerSupplyChannel> ps_vcal = hw.getPowerSupplyChannel("VCAL");
+  ps_vcal->setVoltageLevel(0.0);
+  ps_vcal->turnOn();
+
+  std::shared_ptr<PowerSupplyChannel> ps_vff = hw.getPowerSupplyChannel("VFF");
+  ps_vff->setVoltageLevel(0.131);
+  ps_vff->turnOn();
+
+  std::shared_ptr<PowerSupplyChannel> ps_vaf = hw.getPowerSupplyChannel("VAF");
+  ps_vaf->setVoltageLevel(0.168);
+  ps_vaf->turnOn();
+
+  std::shared_ptr<PowerSupplyChannel> ps_vthcomp = hw.getPowerSupplyChannel("VthComp");
+  ps_vthcomp->setVoltageLevel(0.7);
+  ps_vthcomp->turnOn();
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  logger(logINFO) << "vbp_iref voltage [V]: "<<ps_vbp_iref->measureVoltage();
+  logger(logINFO) << "vbp_iref current [A]: "<<ps_vbp_iref->measureCurrent();
+
+  logger(logINFO) << "vff voltage [V]: "<<ps_vff->measureVoltage();
+  logger(logINFO) << "vff current [A]: "<<ps_vff->measureCurrent();
+
+  logger(logINFO) << "vaf voltage [V]: "<<ps_vaf->measureVoltage();
+  logger(logINFO) << "vaf current [A]: "<<ps_vaf->measureCurrent();
+
+  logger(logINFO) << "vthcomp voltage [V]: "<<ps_vthcomp->measureVoltage();
+  logger(logINFO) << "vthcomp current [A]: "<<ps_vthcomp->measureCurrent();
+
 
   std::shared_ptr<TextSerialCom> com(new TextSerialCom("/dev/ttyACM0", SerialCom::BaudRate::Baud115200));
   com->setTermination("\n");
@@ -213,9 +251,43 @@ int main(int argc, char** argv)
   std::shared_ptr<LMK03806INO> clock(new LMK03806INO(com));
   if (nDivide_in > 0) {
     configureClock(clock);
-    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 
+
+  std::cout<<"======== Configure METAROCK chip:"<<std::endl;
+  std::shared_ptr<METAROCKINO> metarock(new METAROCKINO(com, 1000.0/(F_VCO/nDivide)));
+  metarock->writeGPIO("LOOPNK_EN", 1);
+
+  float vcal = 0.0;
+  ps_vcal->setVoltageLevel(vcal);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+  logger(logINFO) << "vcal voltage [V]: "<<ps_vcal->measureVoltage();
+  logger(logINFO) << "vcal current [A]: "<<ps_vcal->measureCurrent();
+
+  int ch = 11;
+  uint32_t inj = 10;
+  std::cout<<"Injecting on channel: "<<ch<<std::endl;
+  float Qinj = 10000.0*(inj*0.9 + vcal)*1.46/(5*1.6);
+
+  std::cout<<"Injection config: "<<inj<<", injection charge = "<<Qinj<<" electrons"<<std::endl;
+
+  uint32_t inj_reversed =
+        ((inj & 0b0001) << 3) |
+        ((inj & 0b0010) << 1) |
+        ((inj & 0b0100) >> 1) |
+        ((inj & 0b1000) >> 3);
+  uint32_t cfgin = (0b1 << (31-ch)) | (inj_reversed << 10);
+  std::cout<<"cfgin: "<<std::bitset<32>(cfgin)<<std::endl;
+
+  //calibrate TDC
+  //calibrateTDC(clock, metarock, cfgin);  
+
+  //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 50, 500, 5000, 10, false);//ch11, thr 2.80
+
+  metarock->doScan(cfgin, 10, outFileName, true);
+  //metarock->scanTimeVsInj(ch, ps_vcal, outFileName, 100, 3, 15, true, 1.0);
 
   return 0;
 }
