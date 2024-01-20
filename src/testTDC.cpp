@@ -207,7 +207,7 @@ int main(int argc, char** argv)
   hw.setHardwareConfig(equipConfigFile);
 
   std::shared_ptr<PowerSupplyChannel> ps_vbp_iref = hw.getPowerSupplyChannel("VBP_IREF");
-  ps_vbp_iref->setVoltageProtect(0.60);
+  ps_vbp_iref->setVoltageProtect(0.5);
   ps_vbp_iref->setCurrentLevel(-4.8e-6);
 
   ps_vbp_iref->turnOn();
@@ -225,7 +225,7 @@ int main(int argc, char** argv)
   ps_vaf->turnOn();
 
   std::shared_ptr<PowerSupplyChannel> ps_vthcomp = hw.getPowerSupplyChannel("VthComp");
-  ps_vthcomp->setVoltageLevel(0.7);
+  ps_vthcomp->setVoltageLevel(0.80);
   ps_vthcomp->turnOn();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -284,10 +284,19 @@ int main(int argc, char** argv)
   //calibrate TDC
   //calibrateTDC(clock, metarock, cfgin);  
 
-  //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 50, 500, 5000, 10, false);//ch11, thr 2.80
+  //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 50, 500, 2000, 10, false);//ch11, thr 2.80
 
+  /*
+  for(float iref_temp = 5.0; iref_temp<50.0; iref_temp +=10.0 ){
+  std::cout<<"===============================: iref = "<<iref_temp<<std::endl;
+  ps_vbp_iref->setCurrentLevel(-1e-6*iref_temp);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  metarock->doScan(cfgin, 5, outFileName, true);
+  }
+  */
   metarock->doScan(cfgin, 10, outFileName, true);
-  //metarock->scanTimeVsInj(ch, ps_vcal, outFileName, 100, 3, 15, true, 1.0);
+  
+  metarock->scanTimeVsInj(ch, ps_vcal, outFileName, 100, 10.0, 13.0, true, 3.0);
 
   return 0;
 }
