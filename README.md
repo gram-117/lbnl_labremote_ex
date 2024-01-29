@@ -18,6 +18,7 @@ cd run
 ```
 
 where 6 is the divider for the output clock (from 2695MHz)
+
 uncomment the last few lines in src/testAFE.cpp to select the test you want to do.
 
 - upload sketch to arduino:
