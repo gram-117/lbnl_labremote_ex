@@ -33,7 +33,7 @@
             }
         },
         {
-            "name": "Keithley_TDC",
+            "name": "Keithley1_TDC",
             "hw-type": "PS",
             "hw-model": "Keithley24XX",
             "communication": {
@@ -73,6 +73,18 @@
             "name": "VthComp",
             "hw-type": "PS",
             "device": "LV_TDC",
+            "channel": 1
+        },
+        {
+            "name": "VchargeP2",
+            "hw-type": "PS",
+            "device": "Keithley1_TDC",
+            "channel": 1
+        },
+        {
+            "name": "VchargeN2",
+            "hw-type": "PS",
+            "device": "LV",
             "channel": 1
         }
     ]

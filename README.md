@@ -12,12 +12,12 @@ cmake3 ..
 - run:
 ```
 cd run
-./testINO 7
+./testAFE 6
 ```
 
-where 7 is the divider for the output clock (from 2640MHz)
+where 6 is the divider for the output clock (from 2640MHz)
 
 - upload sketch to arduino:
 ```
-arduino --upload --board arduino:sam:arduino_due_x --port /dev/ttyACM0 arduino/pebbles/pebbles.ino
+arduino --upload --board arduino:sam:arduino_due_x --port /dev/ttyACM0 arduino/metarock/metarock.ino
 ```

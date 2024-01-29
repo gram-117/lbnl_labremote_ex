@@ -16,7 +16,7 @@
 #include <ComIOException.h>
 #include <SPIFTDICom.h>
 #include <LMK03806INO.h>
-#include <PEBBLESINO.h>
+#include <METAROCKINO.h>
 #include <TextSerialCom.h>
 #include <SerialCom.h>
 #include "Logger.h"
@@ -30,9 +30,9 @@ std::string equipConfigFile = "equip_testbench.json";
 
 
 
-float F_VCO = 2640.0;//VCO frequency, measured with scope
-int nDivide = 7;
-int nDivide_in = 7;
+float F_VCO = 2695.0;//VCO frequency, measured with scope
+int nDivide = 6;
+int nDivide_in = 6;
 std::string outFileName = "out.csv";
 
 int tsleep_write = 10;
@@ -167,14 +167,14 @@ void configureClock(std::shared_ptr<LMK03806INO> clock){
   std::cout<<"======== Configure LMK03806 CLOCK done ============="<<std::endl;
 }
 
-void calibrateTDC(std::shared_ptr<LMK03806INO> clock, std::shared_ptr<PEBBLESINO> pebbles, uint32_t cfgin){
+void calibrateTDC(std::shared_ptr<LMK03806INO> clock, std::shared_ptr<METAROCKINO> metarock, uint32_t cfgin){
 
   int nDivide_back = nDivide;
   nDivide = 4;
 
   configureClock(clock);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  pebbles->calibrateTDC(cfgin, 1000.0/(F_VCO/nDivide), 1000);
+  metarock->calibrateTDC(cfgin, 1000.0/(F_VCO/nDivide), 1000);
 
   nDivide = nDivide_back;
 
@@ -211,7 +211,7 @@ int main(int argc, char** argv)
   // ch11, 2000e: 2.80
   // ch11, 3000e: 4.30
   // ch11, 4000e: 5.50
-  ps_vbp_iref->setCurrentLevel(-0.5e-6);
+  ps_vbp_iref->setCurrentLevel(-3.3e-6);
 
   ps_vbp_iref->turnOn();
 
@@ -250,9 +250,9 @@ int main(int argc, char** argv)
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 
-  std::cout<<"======== Configure PEBBLES chip:"<<std::endl;
-  std::shared_ptr<PEBBLESINO> pebbles(new PEBBLESINO(com, 1000.0/(F_VCO/nDivide)));
-  pebbles->writeGPIO("LOOPNK_EN", 1);
+  std::cout<<"======== Configure METAROCK chip:"<<std::endl;
+  std::shared_ptr<METAROCKINO> metarock(new METAROCKINO(com, 1000.0/(F_VCO/nDivide)));
+  metarock->writeGPIO("LOOPNK_EN", 1);
 
   float vcal = 0.0;
   ps_vcal->setVoltageLevel(vcal);
@@ -261,8 +261,8 @@ int main(int argc, char** argv)
   logger(logINFO) << "vcal voltage [V]: "<<ps_vcal->measureVoltage();
   logger(logINFO) << "vcal current [A]: "<<ps_vcal->measureCurrent();
 
-  int ch = 15;
-  uint32_t inj = 3;
+  int ch = 11;
+  uint32_t inj = 10;
   std::cout<<"Injecting on channel: "<<ch<<std::endl;
   float Qinj = 10000.0*(inj*0.9 + vcal)*1.46/(5*1.6);
 
@@ -277,22 +277,22 @@ int main(int argc, char** argv)
   std::cout<<"cfgin: "<<std::bitset<32>(cfgin)<<std::endl;
 
   //calibrate TDC
-  //calibrateTDC(clock, pebbles, cfgin);
+  //calibrateTDC(clock, metarock, cfgin);
 
-  //pebbles->doScan(cfgin, 3, outFileName, true);
-  //pebbles->doScan(cfgin, 5000, outFileName, false);
+  //metarock->doScan(cfgin, 3, outFileName, true);
+  //metarock->doScan(cfgin, 5000, outFileName, false);
   //
 
-  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch11, thr 1.31
-  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 1600, 2400, 40, false);//ch11, thr 2.80
-  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 2400, 3600, 50, false);//ch11, thr 4.3
-  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 3400, 4600, 50, false);//ch11, thr 5.5
-  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch11, thr 3.5
-  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 800, 1600, 40, false);//ch11, thr 3.5
-  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch12, thr 1.90
-  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch13, thr 0.6
-  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch10, thr 0.78
-  //pebbles->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch7, thr 4.5
+  metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 50, 700, 1500, 10, false);//ch11, thr 1.31
+  //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 1600, 2400, 40, false);//ch11, thr 2.80
+  //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 2400, 3600, 50, false);//ch11, thr 4.3
+  //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 3400, 4600, 50, false);//ch11, thr 5.5
+  //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch11, thr 3.5
+  //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 800, 1600, 40, false);//ch11, thr 3.5
+  //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch12, thr 1.90
+  //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch13, thr 0.6
+  //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch10, thr 0.78
+  //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 500, 700, 1500, 40, false);//ch7, thr 4.5
 
   /*
   std::vector<float> scan_vff = {0.10, 0.13, 0.18, 0.20};
@@ -304,41 +304,41 @@ int main(int argc, char** argv)
       ps_vbp_iref->setCurrentLevel(scan_iref[ivff]);
       std::cout<<"scanning for vff = "<<scan_vff[ivff]<<std::endl;
       std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-      pebbles->scanHitsVsInj(ch, ps_vcal, "vff"+std::to_string(scan_vff[ivff])+"_"+outFileName, 500, 700, 1500, 40, false);//ch11, thr 1.31
+      metarock->scanHitsVsInj(ch, ps_vcal, "vff"+std::to_string(scan_vff[ivff])+"_"+outFileName, 500, 700, 1500, 40, false);//ch11, thr 1.31
   }
   */
 
 
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -6.8e-6, -8.2e-6, 36);// ch15, inj 10
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -5.2e-6, -6.4e-6, 36);// ch15, inj 7
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -4.6e-6, -5.8e-6, 36);// ch15, inj 6
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -3.8e-6, -5.0e-6, 36);// ch15, inj 5
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -3.0e-6, -4.2e-6, 36);// ch15, inj 4
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -1.2e-6, -2.4e-6, 36);// ch15, inj 2
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -6.8e-6, -8.2e-6, 36);// ch15, inj 10
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -5.2e-6, -6.4e-6, 36);// ch15, inj 7
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -4.6e-6, -5.8e-6, 36);// ch15, inj 6
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -3.8e-6, -5.0e-6, 36);// ch15, inj 5
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -3.0e-6, -4.2e-6, 36);// ch15, inj 4
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -1.2e-6, -2.4e-6, 36);// ch15, inj 2
 
 
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -15.0e-6, -17.5e-6, 40);// ch11, inj 10
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -8.5e-6, -11.5e-6, 40);// ch11, inj 5
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -7.5e-6, -9.5e-6, 40);// ch11, inj 4
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -5.6e-6, -7.6e-6, 40);// ch11, inj 3
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -4.0e-6, -6.0e-6, 40);// ch11, inj 2
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -1.8e-6, -3.2e-6, 40);// ch11, inj 1
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -15.0e-6, -17.5e-6, 40);// ch11, inj 10
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -8.5e-6, -11.5e-6, 40);// ch11, inj 5
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -7.5e-6, -9.5e-6, 40);// ch11, inj 4
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -5.6e-6, -7.6e-6, 40);// ch11, inj 3
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -4.0e-6, -6.0e-6, 40);// ch11, inj 2
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -1.8e-6, -3.2e-6, 40);// ch11, inj 1
 
 
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -18.0e-6, -22.0e-6, 40);// ch3, inj 5
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -15.5e-6, -19.5e-6, 40);// ch3, inj 4
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -12.0e-6, -16.0e-6, 40);// ch3, inj 3
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -8.5e-6, -12.5e-6, 40);// ch3, inj 2
-  //pebbles->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -4.0e-6, -7.0e-6, 40);// ch3, inj 1
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -18.0e-6, -22.0e-6, 40);// ch3, inj 5
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -15.5e-6, -19.5e-6, 40);// ch3, inj 4
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -12.0e-6, -16.0e-6, 40);// ch3, inj 3
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -8.5e-6, -12.5e-6, 40);// ch3, inj 2
+  //metarock->scanHitsVsThr(cfgin, ps_vbp_iref, outFileName, 500, -4.0e-6, -7.0e-6, 40);// ch3, inj 1
   
   
   
   
-  //pebbles->scanTimeVsInj(ch, outFileName, 3000, 3, 15, true);//ch15, thr2
-  //pebbles->scanTimeVsInj(ch, outFileName, 3000, 1, 15, true);//ch11, thr1p31
-  //pebbles->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1.0, 15.0, true, 0.3); // ch11, thr1p31, step0.3
-  //pebbles->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1.0, 15.0, true, 0.3); // ch11, thr1p31, step0.3
-  pebbles->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1.0, 15.0, true, 0.3); // ch7, thr4p5, step0.3
+  //metarock->scanTimeVsInj(ch, outFileName, 3000, 3, 15, true);//ch15, thr2
+  //metarock->scanTimeVsInj(ch, outFileName, 3000, 1, 15, true);//ch11, thr1p31
+  //metarock->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1.0, 15.0, true, 0.3); // ch11, thr1p31, step0.3
+  //metarock->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1.0, 15.0, true, 0.3); // ch11, thr1p31, step0.3
+  //metarock->scanTimeVsInj(ch, ps_vcal, outFileName, 3000, 1.0, 15.0, true, 0.3); // ch7, thr4p5, step0.3
 
   return 0;
 }

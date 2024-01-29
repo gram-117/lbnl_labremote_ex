@@ -30,9 +30,10 @@ std::string equipConfigFile = "equip_testbench.json";
 
 
 
-float F_VCO = 2640.0;//VCO frequency, measured with scope
-int nDivide = 7;
-int nDivide_in = 7;
+float F_VCO = 2695.0;//VCO frequency, measured with scope
+int nDivide = 6; // dT = 2.2263
+int nDivide_in = 6;
+int nDivide_40MHz = 66;
 std::string outFileName = "out.csv";
 
 int tsleep_write = 10;
@@ -66,7 +67,7 @@ void configureClock(std::shared_ptr<LMK03806INO> clock){
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
 
 
-  uint32_t R5 = (0 << 18) | (63 << 5) | 5; // 40 MHz clock CLKout10/11
+  uint32_t R5 = (0 << 18) | (nDivide_40MHz << 5) | 5; // 40 MHz clock CLKout10/11, dT=24.49ns
   clock->write(R5);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
   clock->write(R5);
@@ -182,7 +183,7 @@ void calibrateTDC(std::shared_ptr<LMK03806INO> clock, std::shared_ptr<METAROCKIN
 
   configureClock(clock);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  metarock->calibrateTDC(cfgin, 1000.0/(F_VCO/nDivide), 200);
+  metarock->calibrateTDC(cfgin, 1000.0/(F_VCO/nDivide), 1000);
 
   nDivide = nDivide_back;
 
@@ -207,10 +208,26 @@ int main(int argc, char** argv)
   hw.setHardwareConfig(equipConfigFile);
 
   std::shared_ptr<PowerSupplyChannel> ps_vbp_iref = hw.getPowerSupplyChannel("VBP_IREF");
-  ps_vbp_iref->setVoltageProtect(0.5);
-  ps_vbp_iref->setCurrentLevel(-4.8e-6);
-
+  ps_vbp_iref->setVoltageProtect(0.9);
+  ps_vbp_iref->setCurrentLevel(-15e-6);
   ps_vbp_iref->turnOn();
+  //
+  std::shared_ptr<PowerSupplyChannel> ps_vaf = hw.getPowerSupplyChannel("VAF");
+  ps_vaf->setVoltageLevel(0.168);
+  ps_vaf->turnOn();
+
+
+  /* 
+  std::shared_ptr<PowerSupplyChannel> ps_VchargeP2 = hw.getPowerSupplyChannel("VchargeP2");
+  ps_VchargeP2->setVoltageProtect(0.9);
+  ps_VchargeP2->setCurrentLevel(-15e-9);
+  ps_VchargeP2->turnOn();
+
+  std::shared_ptr<PowerSupplyChannel> ps_VchargeN2 = hw.getPowerSupplyChannel("VchargeN2");
+  ps_VchargeN2->setVoltageProtect(0.9);
+  ps_VchargeN2->setCurrentLevel(30e-9);
+  ps_VchargeN2->turnOn();
+  */
 
   std::shared_ptr<PowerSupplyChannel> ps_vcal = hw.getPowerSupplyChannel("VCAL");
   ps_vcal->setVoltageLevel(0.0);
@@ -220,17 +237,19 @@ int main(int argc, char** argv)
   ps_vff->setVoltageLevel(0.131);
   ps_vff->turnOn();
 
-  std::shared_ptr<PowerSupplyChannel> ps_vaf = hw.getPowerSupplyChannel("VAF");
-  ps_vaf->setVoltageLevel(0.168);
-  ps_vaf->turnOn();
 
-  std::shared_ptr<PowerSupplyChannel> ps_vthcomp = hw.getPowerSupplyChannel("VthComp");
-  ps_vthcomp->setVoltageLevel(0.80);
-  ps_vthcomp->turnOn();
+  //std::shared_ptr<PowerSupplyChannel> ps_vthcomp = hw.getPowerSupplyChannel("VthComp");
+  //ps_vthcomp->setVoltageLevel(0.7);
+  //ps_vthcomp->turnOn();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  logger(logINFO) << "vbp_iref voltage [V]: "<<ps_vbp_iref->measureVoltage();
-  logger(logINFO) << "vbp_iref current [A]: "<<ps_vbp_iref->measureCurrent();
+  //logger(logINFO) << "vbp_iref voltage [V]: "<<ps_vbp_iref->measureVoltage();
+  //logger(logINFO) << "vbp_iref current [A]: "<<ps_vbp_iref->measureCurrent();
+
+  //logger(logINFO) << "VchargeP2 voltage [V]: "<<ps_VchargeP2->measureVoltage();
+  //logger(logINFO) << "VchargeP2 current [A]: "<<ps_VchargeP2->measureCurrent();
+  //logger(logINFO) << "VchargeN2 voltage [V]: "<<ps_VchargeN2->measureVoltage();
+  //logger(logINFO) << "VchargeN2 current [A]: "<<ps_VchargeN2->measureCurrent();
 
   logger(logINFO) << "vff voltage [V]: "<<ps_vff->measureVoltage();
   logger(logINFO) << "vff current [A]: "<<ps_vff->measureCurrent();
@@ -238,8 +257,8 @@ int main(int argc, char** argv)
   logger(logINFO) << "vaf voltage [V]: "<<ps_vaf->measureVoltage();
   logger(logINFO) << "vaf current [A]: "<<ps_vaf->measureCurrent();
 
-  logger(logINFO) << "vthcomp voltage [V]: "<<ps_vthcomp->measureVoltage();
-  logger(logINFO) << "vthcomp current [A]: "<<ps_vthcomp->measureCurrent();
+  //logger(logINFO) << "vthcomp voltage [V]: "<<ps_vthcomp->measureVoltage();
+  //logger(logINFO) << "vthcomp current [A]: "<<ps_vthcomp->measureCurrent();
 
 
   std::shared_ptr<TextSerialCom> com(new TextSerialCom("/dev/ttyACM0", SerialCom::BaudRate::Baud115200));
@@ -286,17 +305,53 @@ int main(int argc, char** argv)
 
   //metarock->scanHitsVsInj(ch, ps_vcal, outFileName, 50, 500, 2000, 10, false);//ch11, thr 2.80
 
+  metarock->doScan(cfgin, 10, outFileName, true);
+ 
   /*
-  for(float iref_temp = 5.0; iref_temp<50.0; iref_temp +=10.0 ){
-  std::cout<<"===============================: iref = "<<iref_temp<<std::endl;
-  ps_vbp_iref->setCurrentLevel(-1e-6*iref_temp);
+  for(float vthcomp_temp =0.88; vthcomp_temp<0.92; vthcomp_temp += 0.01){
+  std::cout<<"vthcomp: "<<vthcomp_temp<<std::endl;
+  ps_vthcomp->setVoltageLevel(vthcomp_temp);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  metarock->doScan(cfgin, 5, outFileName, true);
+  metarock->scanTimeVsInj(ch, ps_vcal, outFileName, 100, 10.0, 13.0, true, 3.0);
   }
   */
-  metarock->doScan(cfgin, 10, outFileName, true);
+  //metarock->scanTimeVsInj(ch, ps_vcal, outFileName, 100, 10.0, 13.0, true, 3.0);
+
+
+  //metarock->scanTimeVsInj(ch, ps_vcal, outFileName, 200, 5.0, 13.0, true, 5.0);
+  //for(float VchargeN2_temp =1.0; VchargeN2_temp<15.0; VchargeN2_temp += 0.5){
+  /*for(float VchargeP2_temp =10.0; VchargeP2_temp<40.0; VchargeP2_temp += 1.0){
+      std::cout<<"=========================================================================:"<<std::endl;
+      std::cout<<"VchargeP2: "<<VchargeP2_temp<<" nA"<<std::endl;
+      //std::cout<<"VchargeN2: "<<VchargeN2_temp<<" nA"<<std::endl;
+      ps_VchargeP2->setCurrentLevel(-1e-9*VchargeP2_temp);
+      //ps_VchargeN2->setCurrentLevel(1e-9*VchargeN2_temp);
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+      logger(logINFO) << "VchargeP2 voltage [V]: "<<ps_VchargeP2->measureVoltage();
+      logger(logINFO) << "VchargeP2 current [A]: "<<ps_VchargeP2->measureCurrent();
+      logger(logINFO) << "VchargeN2 voltage [V]: "<<ps_VchargeN2->measureVoltage();
+      logger(logINFO) << "VchargeN2 current [A]: "<<ps_VchargeN2->measureCurrent();
+      //std::cout<<"=== 40MHz:"<<std::endl;
+      //nDivide_40MHz  = 66;
+      //configureClock(clock);
+      //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      metarock->scanTimeVsInj(ch, ps_vcal, outFileName, 100, 5.0, 13.0, true, 5.0);
+
+     }
+  //}
+   */
+ 
+  /*
+  for(int id = 1; id < 3; id++) {
+    nDivide_40MHz  = 66 * id;
+    std::cout<<"clock dT = "<<1000.0/(F_VCO/nDivide_40MHz)<<std::endl;
+    configureClock(clock);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    metarock->scanTimeVsInj(ch, ps_vcal, outFileName, 200, 5.0, 13.0, true, 5.0);
+  }
+  */
   
-  metarock->scanTimeVsInj(ch, ps_vcal, outFileName, 100, 10.0, 13.0, true, 3.0);
 
   return 0;
 }
