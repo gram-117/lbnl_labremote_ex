@@ -9,6 +9,7 @@ For some reason the network on trumer is not doing the above clone properly. Use
 mkdir build
 cd build
 cmake3 ..
+make
 ```
 
 - run:
