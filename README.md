@@ -21,7 +21,8 @@ where 6 is the divider for the output clock (from 2695MHz)
 
 uncomment the last few lines in src/testAFE.cpp to select the test you want to do.
 
-- upload sketch to arduino:
+- upload sketch to arduino (this is needed only if you want to update communication with arduino, which is almost never needed):
 ```
-arduino --upload --board arduino:sam:arduino_due_x --port /dev/ttyACM0 arduino/metarock/metarock.ino
+/home/zhicai/arduino-1.8.19/arduino --upload --board arduino:sam:arduino_due_x --port /dev/ttyACM0 arduino/metarock/metarock.ino
 ```
+
