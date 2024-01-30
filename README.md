@@ -15,7 +15,7 @@ make
 - run:
 ```
 cd run
-./testAFE 6
+../build/testAFE 6
 ```
 
 where 6 is the divider for the output clock (from 2695MHz)
