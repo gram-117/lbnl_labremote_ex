@@ -61,7 +61,7 @@ void initializePAM4Transmitter(std::shared_ptr<TextSerialCom> com) { //configure
     // Define configuration (example)
     uint32_t configValue = 0b0000000000000000000000000000; // Default configuration
 
-    //prev default config
+    // prev default config
     // configValue |= (1 << 0);   // PAM4 = 0
     // configValue |= (1 << 1);   // invert_precursor
     // configValue |= (0 << 2);   // invert_cursor
@@ -73,7 +73,7 @@ void initializePAM4Transmitter(std::shared_ptr<TextSerialCom> com) { //configure
     // configValue |= (0 << 8);   // disable_tx_term
     // configValue |= (1 << 9);   // disable_tx_noterm 
     // configValue |= (1 << 10);  // disable forward clk
-
+    // :)
     configValue |= (1 << 0);   // PAM4 = 0
     configValue |= (1 << 1);   // invert_precursor
     configValue |= (0 << 2);   // invert_cursor
