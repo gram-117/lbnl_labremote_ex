@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../labRemote/src/libUtils/Logger.h
+iostream
+-
+sstream
+-
+
+/home/gdanderson/ldrd_28nm_testing/labRemote/src/tools/ftdi_list.cpp
+libftdi1/ftdi.h
+-
+libusb-1.0/libusb.h
+-
+getopt.h
+-
+iomanip
+-
+sstream
+-
+string
+-
+vector
+-
+Logger.h
+/home/gdanderson/ldrd_28nm_testing/labRemote/src/tools/Logger.h
+

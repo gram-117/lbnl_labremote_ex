@@ -1,0 +1,166 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "nodedef_options_config": {
+            "type": "object",
+            "properties": {
+                "autoconfigure": { "type": "boolean" }
+            },
+            "additionalProperties": false
+        },
+        "nodedef_channels_config": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/def_channel" }
+        },
+        "def_channel": {
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "hw-type": { "type": "string", "enum": ["PS"] },
+                "device": { "type": "string" },
+                "channel": { "type": "integer" },
+                "program": { "type": "object" },
+                "datasink": { "type": "string" }
+            },
+            "required": ["name", "hw-type", "device", "channel" ],
+            "additionalProperties": false
+        },
+        "nodedef_devices_config": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/def_device" }
+        },
+        "def_device": {
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "hw-type": { "type": "string", "enum": ["PS", "Meter", "Chiller"]},
+                "hw-model": { "type": "string" },
+                "communication" : { "$ref": "#/definitions/def_device_communication" },
+                "autoVoltageRange": { "type": "boolean" },
+                "autoCurrentRange": { "type" : "boolean" }
+            },
+            "required": ["name", "hw-type", "hw-model", "communication"],
+            "additionalProperties": false
+        },
+        "def_device_communication": {
+            "type": "object",
+            "oneOf": [
+                {
+                    "properties": {
+                        "protocol": { "const": "GPIBSerialCom" },
+                        "port": { "type": "string" },
+                        "gpib_addr": { "type": "integer" },
+                        "read_tmo_ms": { "type": "integer" },
+                        "baudrate": { "type": "string" },
+                        "parityBit": { "type": "boolean" },
+                        "twoStopBits": { "type": "boolean" },
+                        "flowControl": { "type": "boolean" },
+                        "charsize": { "type": "integer" },
+                        "timeout": { "type": "number" }
+                    },
+                    "required": ["protocol", "port", "gpib_addr"],
+                    "additionalProperties": false
+                },
+                {
+                    "properties": {
+                        "protocol": { "const": "CharDeviceCom" },
+                        "port": { "type": "string" }
+                    },
+                    "required": ["protocol", "port"],
+                    "additionalProperties": false
+                },
+                {
+                    "properties": {
+                        "protocol": { "const": "TextSerialCom" },
+                        "port": { "type": "string" },
+                        "termination": { "type": "string" },
+                        "returnTermination": { "type": "string" },
+                        "baudrate": { "type": "string" },
+                        "parityBit": { "type": "boolean" },
+                        "twoStopBits": { "type": "boolean" },
+                        "flowControl": { "type": "boolean" },
+                        "charsize": { "type": "string" },
+                        "timeout": { "type": "number" }
+                    },
+                    "required": ["protocol", "port", "termination"],
+                    "additionalProperties": false
+                }
+            ]
+        },
+        "nodedef_datastreams_config": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/def_datastreams" }
+        },
+        "def_datastreams": {
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "sinks": { "type": "array", "items": {"type": "string"} }
+            },
+            "required": ["name", "sinks"],
+            "additionalProperties": false
+        },
+        "nodedef_datasinks_config": {
+            "type": "array",
+            "items": {
+                "anyOf": [
+                    {
+                        "$ref": "#/definitions/def_datasink_console"
+                    },
+                    {
+                        "$ref": "#/definitions/def_datasink_csv"
+                    },
+                    {
+                        "$ref": "#/definitions/def_datasink_influxdb"
+                    }
+                ]
+            }
+        },
+        "def_datasink_console": {
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "sinktype": { "type": "string" },
+                "column_width": { "type": "integer" }
+            },
+            "required": ["name", "sinktype"],
+            "additionalProperties": false
+        },
+        "def_datasink_csv": {
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "sinktype": { "type": "string" },
+                "directory": { "type": "string" }
+            },
+            "required": ["name", "sinktype", "directory"],
+            "additionalProperties": false
+        },
+        "def_datasink_influxdb": {
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "sinktype": { "type": "string" },
+                "host": { "type": "string" },
+                "port": { "type": "integer" },
+                "database": { "type": "string" },
+                "username": { "type": "string" },
+                "password": { "type": "string" },
+                "precision": { "type": "integer" }
+            },
+            "required": ["name", "sinktype", "host", "port", "database", "username", "password"],
+            "additionalProperties": false
+        }
+    },
+    "type": "object",
+    "properties": {
+        "version": { "type": "string" },
+        "options": { "$ref": "#/definitions/nodedef_options_config" },
+        "devices": { "$ref": "#/definitions/nodedef_devices_config" },
+        "channels": { "$ref": "#/definitions/nodedef_channels_config" },
+        "datastreams": { "$ref": "#/definitions/nodedef_datastreams_config" },
+        "datasinks": { "$ref": "#/definitions/nodedef_datasinks_config" }
+    },
+    "required": [],
+    "additionalProperties": true
+}

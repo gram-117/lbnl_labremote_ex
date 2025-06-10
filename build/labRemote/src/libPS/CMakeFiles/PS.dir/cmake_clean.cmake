@@ -1,0 +1,36 @@
+file(REMOVE_RECURSE
+  "../../../lib/libPS.pdb"
+  "../../../lib/libPS.so"
+  "../../../lib/libPS.so.1.1"
+  "CMakeFiles/PS.dir/AgilentE36300APs.cpp.o"
+  "CMakeFiles/PS.dir/AgilentE3631APs.cpp.o"
+  "CMakeFiles/PS.dir/AgilentE3634APs.cpp.o"
+  "CMakeFiles/PS.dir/AgilentE3648APs.cpp.o"
+  "CMakeFiles/PS.dir/AgilentE364xAPs.cpp.o"
+  "CMakeFiles/PS.dir/AgilentPs.cpp.o"
+  "CMakeFiles/PS.dir/Bk16XXPs.cpp.o"
+  "CMakeFiles/PS.dir/DT5471NPs.cpp.o"
+  "CMakeFiles/PS.dir/DT5472NPs.cpp.o"
+  "CMakeFiles/PS.dir/DT54xxPs.cpp.o"
+  "CMakeFiles/PS.dir/IPowerSupply.cpp.o"
+  "CMakeFiles/PS.dir/Keithley22XX.cpp.o"
+  "CMakeFiles/PS.dir/Keithley24XX.cpp.o"
+  "CMakeFiles/PS.dir/PowerSupplyChannel.cpp.o"
+  "CMakeFiles/PS.dir/PowerSupplyRegistry.cpp.o"
+  "CMakeFiles/PS.dir/RS_HMP2020.cpp.o"
+  "CMakeFiles/PS.dir/RS_HMP4040.cpp.o"
+  "CMakeFiles/PS.dir/RigolDP832.cpp.o"
+  "CMakeFiles/PS.dir/SCPIPs.cpp.o"
+  "CMakeFiles/PS.dir/SorensenPs.cpp.o"
+  "CMakeFiles/PS.dir/TTIPs.cpp.o"
+  "CMakeFiles/PS.dir/TTIXXXDPPs.cpp.o"
+  "CMakeFiles/PS.dir/TTIXXXSPPs.cpp.o"
+  "CMakeFiles/PS.dir/TTIXXXTPPs.cpp.o"
+  "CMakeFiles/PS.dir/Tenma72133XX.cpp.o"
+  "CMakeFiles/PS.dir/Tenma722XXX.cpp.o"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/PS.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()
