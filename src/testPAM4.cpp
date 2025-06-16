@@ -28,7 +28,6 @@
 std::string equipConfigFile = "equip_testbench.json";
 
 
-
 float F_VCO = 2695.0;//VCO frequency, measured with scope
 int nDivide = 6; // dT = 2.2263
 int nDivide_in = 6;
@@ -43,7 +42,6 @@ void initializePAM4Transmitter(std::shared_ptr<TextSerialCom> com) { //configure
   std::cout<<"======== Configure METAROCK chip:"<<std::endl; //(this needs to be reconfigured based on PAM4, rn its AFE)
   std::shared_ptr<METAROCKINO> metarock(new METAROCKINO(com, 1000.0/(F_VCO/nDivide)));
   
-  // reset active low
   metarock->writeGPIO("RST", 1); // Set RST_B LOW BEFORE WriteConfig
   metarock->writeGPIO("CFGCLK", 0); // Set CFGCLK LOW BEFORE WriteConfig
   metarock->writeGPIO("CFGIN", 1); // Set CFGIN HIGH BEFORE WriteConfig
@@ -61,48 +59,35 @@ void initializePAM4Transmitter(std::shared_ptr<TextSerialCom> com) { //configure
     // Define configuration (example)
     uint32_t configValue = 0b0000000000000000000000000000; // Default configuration
 
-    // prev default config
-    // configValue |= (1 << 0);   // PAM4 = 0
-    // configValue |= (1 << 1);   // invert_precursor
-    // configValue |= (0 << 2);   // invert_cursor
-    // configValue |= (1 << 3);   // invert_postcursor
-    // configValue |= (1 << 4);   // disable_precursor
-    // configValue |= (0 << 5);   // disable_cursors
-    // configValue |= (1 << 6);   // disable_postcursor
-    // configValue |= (0 << 7);   // prbs
-    // configValue |= (0 << 8);   // disable_tx_term
-    // configValue |= (1 << 9);   // disable_tx_noterm 
-    // configValue |= (1 << 10);  // disable forward clk
-    // :)
-    configValue |= (1 << 0);   // PAM4 = 0
+    configValue |= (0 << 0);   // PAM4 = 0
     configValue |= (1 << 1);   // invert_precursor
     configValue |= (0 << 2);   // invert_cursor
     configValue |= (1 << 3);   // invert_postcursor
     configValue |= (1 << 4);   // disable_precursor
     configValue |= (0 << 5);   // disable_cursors
     configValue |= (1 << 6);   // disable_postcursor
-    configValue |= (1 << 7);   // prbs
+    configValue |= (0 << 7);   // prbs7 = 0
     configValue |= (0 << 8);   // disable_tx_term
     configValue |= (1 << 9);   // disable_tx_noterm 
     configValue |= (1 << 10);  // disable forward clk
 
-    configValue |= (0 << 11);  // test
-    configValue |= (0 << 12);  // test
-    configValue |= (1 << 13);  // test
+    configValue |= (1 << 11);  // test
+    configValue |= (1 << 12);  // test
+    configValue |= (0 << 13);  // test
     configValue |= (0 << 14);  // test
-    configValue |= (0 << 15);  // test
+    configValue |= (1 << 15);  // test
     configValue |= (1 << 16);  // test
-    configValue |= (1 << 17);  // test
-    configValue |= (1 << 18);  // test
+    configValue |= (0 << 17);  // test
+    configValue |= (0 << 18);  // test
 
-    configValue |= (1 << 19);  // test
-    configValue |= (1 << 20);  // test
+    configValue |= (0 << 19);  // test
+    configValue |= (0 << 20);  // test
     configValue |= (1 << 21);  // test
-    configValue |= (0 << 22);  // test
+    configValue |= (1 << 22);  // test
     configValue |= (0 << 23);  // test
-    configValue |= (1 << 24);  // test
-    configValue |= (0 << 25);  // test
-    configValue |= (0 << 26);  // test
+    configValue |= (0 << 24);  // test
+    configValue |= (1 << 25);  // test
+    configValue |= (1 << 26);  // test
 
 
     configValue |= (0 << 27);  // spare
