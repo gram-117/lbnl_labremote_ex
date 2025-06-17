@@ -174,7 +174,7 @@ void configureClock(std::shared_ptr<LMK03806INO> clock) {
   clock->write(R29, true);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
 
-  uint32_t R30 = (4 << 24) | (30 << 5) | 30; // PLL N divider 5 * 25 see if this can be changed *******
+  uint32_t R30 = (4 << 24) | (30 << 5) | 30; // PLL N divider 4 * 30, ensure result is in range
   clock->write(R30, true);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
   clock->write(R30, true); // Write twice to ensure calibration
