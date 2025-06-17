@@ -10,6 +10,7 @@
 #include <map>
 #include <bitset>
 #include <vector>
+#include <string>
 
 #include <FT232H.h>
 #include <HYT271.h>
@@ -28,8 +29,8 @@
 std::string equipConfigFile = "equip_testbench.json";
 
 
-float F_VCO = 2695.0;//VCO frequency, measured with scope
-int nDivide = 6; // dT = 2.2263
+float F_VCO = 2452.8;//VCO frequency, measured with scope 2695.0 // now used calculated
+int nDivide = 6; // dT = 2.2263 was prev 6 
 int nDivide_in = 6;
 int nDivide_40MHz = 66;
 std::string outFileName = "out.csv";
@@ -120,7 +121,7 @@ void configureClock(std::shared_ptr<LMK03806INO> clock) {
   }
 
   // Unlock registers for write
-  uint32_t R31 = 0b11111;
+  uint32_t R31 = 0b011111;
   clock->write(R31);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
 
@@ -130,10 +131,15 @@ void configureClock(std::shared_ptr<LMK03806INO> clock) {
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
 
   // Step 2: Configure R1 for CLKout2 and CLKout3 (clock group 1)
-  uint32_t R1 = (0 << 18) | (nDivide << 5) | 1; // Set divider for CLKout2 and CLKout3
+  uint32_t R1 = (0 << 18) | (nDivide << 5) | 1; // Set divider for CLKout2 and CLKout3 .
   clock->write(R1);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
   clock->write(R1); // Write twice if divider > 25
+  std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
+
+  // data sheet says required to program R3 after power up pg 22
+  uint32_t R3 = (0 << 18) | (0x01 << 5) | 3;
+  clock->write(R3);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
 
   // Step 3: Configure R6 for CLKout2 output type (LVDS, LVPECL, etc.)
@@ -141,37 +147,50 @@ void configureClock(std::shared_ptr<LMK03806INO> clock) {
   clock->write(R6);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
 
+  // data sheet says required to be this sequence pg 22
+  uint32_t R9 = (0b010101010101010101010101010 << 5) | 9;
+  clock->write(R9);
+  std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
+
+  // data sheet says required to be this sequence pg 22
+  uint32_t R16 = (0b1100000101010101 << 16) | 16;
+  clock->write(R16);
+  std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
+
   // Step 4: Configure PLL settings (required for CLKout2 to function)
   uint32_t R24 = (0 << 28) | (0 << 24) | (0 << 20) | (0 << 16) | 24; // Default loop filter settings
   clock->write(R24);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
 
-  uint32_t R26 = (1 << 31) | (1 << 29) | (3 << 26) | (0b111010 << 20) | (8192 << 5) | 26; // PLL settings
+  uint32_t R26 = (1 << 31) | (1 << 29) | (3 << 26) | (0b111010 << 20) | (8192 << 5) | 26; // PLL settings ***** 29 to 0 to see if freq gets halfed
   clock->write(R26);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
 
   uint32_t R28 = (2 << 20) | 28; // PLL R divider
-  clock->write(R28);
+  clock->write((R28), true);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
 
-  uint32_t R29 = (0 << 24) | (1 << 22) | (25 << 5) | 29; // PLL N calibration
-  clock->write(R29);
+  uint32_t R29 = (0x00 << 24) | (1 << 22) | (30 << 5) | 29; // PLL N calibration
+  clock->write(R29, true);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
 
-  uint32_t R30 = (5 << 24) | (25 << 5) | 30; // PLL N divider
-  clock->write(R30);
+  uint32_t R30 = (4 << 24) | (30 << 5) | 30; // PLL N divider 5 * 25 see if this can be changed *******
+  clock->write(R30, true);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
-  clock->write(R30); // Write twice to ensure calibration
+  clock->write(R30, true); // Write twice to ensure calibration
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
 
   // Lock all registers - R0 to R30 only readable now
   R31 = 0b111111;
-  clock->write(R31);
+  clock->write(R31, true);
   std::this_thread::sleep_for(std::chrono::milliseconds(tsleep_write));
 
+  std::cout << "reg readback" << std::endl;
   // Read back all registers
-  for (int reg = 0; reg < 31; reg++) {
-      clock->read(reg);
+  for (int reg = 0; reg <= 31; reg++) {
+      uint32_t regValue = clock->read(reg);
+      std::bitset<32> binary(regValue);  // 32 bits
+      std::cout << "reg: " << reg << " value: " << binary << std::endl;
       std::this_thread::sleep_for(std::chrono::milliseconds(2));
   }
 

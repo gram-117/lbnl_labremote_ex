@@ -489,6 +489,8 @@ bitset
 -
 vector
 -
+string
+-
 FT232H.h
 -
 HYT271.h
