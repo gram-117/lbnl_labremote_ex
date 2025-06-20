@@ -18,12 +18,14 @@ metarockino code must be flashed onto Arduino UNO with the following steps: uplo
 
 /home/zhicai/arduino-1.8.19/arduino --upload --board arduino:sam:arduino_due_x --port /dev/ttyACM0 arduino/metarock/metarock.ino
 
-testpam4 code needs to do these following steps in order to be run:
+FOR PAM4 TESTING:
 
+```
 cd ldrd_28nm_testing/
 cd build/
 make
 cd ..
 cd run/
-../build/testPAM4 270 (integer is for the frequency you want to run the clock at, right now its configured for 10mhz)
-
+../build/testPAM4 250 
+```
+output freq for PAM4 will be 2500MHz / nDiv, where nDiv is argument in this case 250 (giving 10MHz)
